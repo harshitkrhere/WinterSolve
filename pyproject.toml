@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wintersolve"
+version = "0.1.0"
+description = "Open-source developer + AI toolkit for practical engineering workflows."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "WinterSolve Contributors" }
+]
+keywords = ["ai", "developer-tools", "cli", "automation", "codebase-analysis"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development",
+  "Topic :: Software Development :: Documentation",
+  "Topic :: Utilities"
+]
+dependencies = []
+
+[project.scripts]
+wintersolve = "wintersolve.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
