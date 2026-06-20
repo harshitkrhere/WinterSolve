@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-
 IGNORED_DIRECTORIES = {
     ".git",
     ".hg",
@@ -23,6 +22,33 @@ IGNORED_DIRECTORIES = {
     ".venv",
     "venv",
     "env",
+}
+
+LANGUAGE_BY_EXTENSION = {
+    ".py": "Python",
+    ".js": "JavaScript",
+    ".jsx": "JavaScript",
+    ".ts": "TypeScript",
+    ".tsx": "TypeScript",
+    ".go": "Go",
+    ".rs": "Rust",
+    ".java": "Java",
+    ".kt": "Kotlin",
+    ".cs": "C#",
+    ".php": "PHP",
+    ".rb": "Ruby",
+    ".swift": "Swift",
+    ".c": "C",
+    ".h": "C/C++",
+    ".cpp": "C++",
+    ".hpp": "C++",
+    ".html": "HTML",
+    ".css": "CSS",
+    ".scss": "CSS",
+    ".md": "Markdown",
+    ".sql": "SQL",
+    ".sh": "Shell",
+    ".ps1": "PowerShell",
 }
 
 TEXT_EXTENSIONS = {
@@ -111,15 +137,6 @@ def read_text_file(path: Path) -> str:
 
 def resolve_project_path(root: Path, candidate: str) -> Path:
     target = (root / candidate).resolve()
-    if not _is_relative_to(target, root.resolve()):
+    if not target.is_relative_to(root.resolve()):
         raise ValueError(f"Path is outside the project: {candidate}")
     return target
-
-
-def _is_relative_to(path: Path, root: Path) -> bool:
-    try:
-        path.relative_to(root)
-    except ValueError:
-        return False
-    return True
-

@@ -37,16 +37,15 @@ def _package_json_commands(path: Path) -> list[CommandCandidate]:
         return []
 
     commands: list[CommandCandidate] = []
-    for name in ["dev", "start", "build", "test", "lint", "format"]:
-        if name in scripts:
-            commands.append(
-                CommandCandidate(
-                    name=name,
-                    command=f"npm run {name}",
-                    source="package.json",
-                    confidence="high",
-                )
+    for name, _ in list(scripts.items())[:10]:
+        commands.append(
+            CommandCandidate(
+                name=name,
+                command=f"npm run {name}",
+                source="package.json",
+                confidence="high",
             )
+        )
     return commands
 
 
@@ -61,8 +60,8 @@ def _pyproject_commands(path: Path) -> list[CommandCandidate]:
             confidence="medium",
         )
     ]
-    text = read_text_file(path).lower()
-    if "pytest" in text:
+    text = read_text_file(path)
+    if re.search(r"(?i)\bpytest\b", text):
         commands.append(
             CommandCandidate(
                 name="test",
@@ -91,7 +90,14 @@ def _makefile_commands(path: Path) -> list[CommandCandidate]:
         match = re.match(r"^([a-zA-Z0-9_.-]+):", line)
         if match and not line.startswith("\t"):
             name = match.group(1)
-            if name not in {".PHONY"}:
+            MAKEFILE_EXCLUDE = {
+                ".PHONY",
+                ".DEFAULT",
+                ".SUFFIXES",
+                ".DELETE_ON_ERROR",
+                ".SILENT",
+            }
+            if name not in MAKEFILE_EXCLUDE and not name.startswith("."):
                 commands.append(
                     CommandCandidate(
                         name=name,
@@ -107,9 +113,28 @@ def _readme_commands(path: Path) -> list[CommandCandidate]:
     if not path.exists():
         return []
     commands: list[CommandCandidate] = []
+    in_code_block = False
     for line in read_text_file(path).splitlines():
         stripped = line.strip()
-        if stripped.startswith(("python -m ", "npm ", "pnpm ", "yarn ", "go test", "cargo ")):
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+
+        if stripped.startswith("$ "):
+            stripped = stripped[2:].strip()
+
+        if stripped.startswith(
+            (
+                "python -m ",
+                "npm ",
+                "pnpm ",
+                "yarn ",
+                "go test",
+                "cargo ",
+                "make ",
+                "docker ",
+            )
+        ):
             commands.append(
                 CommandCandidate(
                     name="documented command",
@@ -131,4 +156,3 @@ def _dedupe(commands: list[CommandCandidate]) -> list[CommandCandidate]:
         seen.add(key)
         unique.append(command)
     return unique[:20]
-

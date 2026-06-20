@@ -4,35 +4,11 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-from wintersolve.project import IGNORED_DIRECTORIES, is_ignored
-
-
-LANGUAGE_BY_EXTENSION = {
-    ".py": "Python",
-    ".js": "JavaScript",
-    ".jsx": "JavaScript",
-    ".ts": "TypeScript",
-    ".tsx": "TypeScript",
-    ".go": "Go",
-    ".rs": "Rust",
-    ".java": "Java",
-    ".kt": "Kotlin",
-    ".cs": "C#",
-    ".php": "PHP",
-    ".rb": "Ruby",
-    ".swift": "Swift",
-    ".c": "C",
-    ".h": "C/C++",
-    ".cpp": "C++",
-    ".hpp": "C++",
-    ".html": "HTML",
-    ".css": "CSS",
-    ".scss": "CSS",
-    ".md": "Markdown",
-    ".sql": "SQL",
-    ".sh": "Shell",
-    ".ps1": "PowerShell",
-}
+from wintersolve.project import (
+    LANGUAGE_BY_EXTENSION,
+    is_ignored,
+    iter_project_files,
+)
 
 FRAMEWORK_MARKERS = {
     "package.json": "Node.js",
@@ -69,6 +45,10 @@ IMPORTANT_FILES = [
     ".env.example",
 ]
 
+RECOMMEND_DOCUMENT_COMMANDS = (
+    "Document the main setup, test, and build commands for the detected stack."
+)
+
 
 @dataclass(frozen=True)
 class ScanResult:
@@ -103,18 +83,20 @@ def scan_project(path: Path) -> ScanResult:
             recommendations=["Run `wintersolve scan` with a valid project directory."],
         )
 
-    files: list[Path] = []
+    project_files = iter_project_files(path)
+
+    # We still need directories for test path detection.
+    # iter_project_files only returns files. Let's do a simple directory scan.
     directories: list[Path] = []
     for item in path.rglob("*"):
-        if is_ignored(item, path):
-            continue
-        if item.is_dir():
+        if item.is_dir() and not is_ignored(item, path):
             directories.append(item)
-        elif item.is_file():
-            files.append(item)
 
-    relative_files = {_to_posix(file.relative_to(path)) for file in files}
-    relative_dirs = {_to_posix(directory.relative_to(path)) for directory in directories}
+    files = [pf.path for pf in project_files]
+    relative_files = {pf.relative_path for pf in project_files}
+    relative_dirs = {
+        _to_posix(directory.relative_to(path)) for directory in directories
+    }
 
     language_counts = Counter(
         LANGUAGE_BY_EXTENSION[file.suffix.lower()]
@@ -138,9 +120,7 @@ def scan_project(path: Path) -> ScanResult:
     ]
 
     likely_test_paths = sorted(
-        item
-        for item in relative_dirs | relative_files
-        if _looks_like_test_path(item)
+        item for item in relative_dirs | relative_files if _looks_like_test_path(item)
     )[:12]
     likely_source_paths = sorted(
         item
@@ -178,14 +158,18 @@ def scan_project(path: Path) -> ScanResult:
     )
 
 
+TESTABLE_EXTENSIONS = {".py", ".js", ".ts", ".tsx", ".go", ".rs", ".rb", ".java"}
+
+
 def _looks_like_test_path(path: str) -> bool:
     normalized = path.lower()
     name = Path(path).name.lower()
+    ext = Path(path).suffix.lower()
     return (
         normalized == "tests"
         or normalized.startswith("tests/")
         or "/tests/" in normalized
-        or name.startswith("test_")
+        or (name.startswith("test_") and ext in TESTABLE_EXTENSIONS)
         or name.endswith("_test.py")
         or name.endswith(".test.js")
         or name.endswith(".test.ts")
@@ -215,7 +199,9 @@ def _build_risks(
     if not likely_test_paths:
         risks.append("No obvious test files or test directories were detected.")
 
-    return risks or ["No major repository health risks were detected by the basic scan."]
+    return risks or [
+        "No major repository health risks were detected by the basic scan."
+    ]
 
 
 def _build_recommendations(
@@ -226,15 +212,24 @@ def _build_recommendations(
     recommendations: list[str] = []
 
     for file in missing_recommended_files:
-        recommendations.append(f"Add {file} to improve project trust and maintainability.")
+        recommendations.append(
+            f"Add {file} to improve project trust and maintainability."
+        )
     if not likely_test_paths:
-        recommendations.append("Add or document tests so contributors can verify changes.")
+        recommendations.append(
+            "Add or document tests so contributors can verify changes."
+        )
     if not frameworks:
-        recommendations.append("Add clear setup metadata such as pyproject.toml, package.json, go.mod, or Cargo.toml.")
+        recommendations.append(
+            "Add clear setup metadata such as pyproject.toml, package.json, "
+            "go.mod, or Cargo.toml."
+        )
     if frameworks:
-        recommendations.append("Document the main setup, test, and build commands for the detected stack.")
+        recommendations.append(RECOMMEND_DOCUMENT_COMMANDS)
 
-    return recommendations or ["Keep documentation, tests, and project metadata current as the project grows."]
+    return recommendations or [
+        "Keep documentation, tests, and project metadata current as the project grows."
+    ]
 
 
 def _to_posix(path: Path) -> str:

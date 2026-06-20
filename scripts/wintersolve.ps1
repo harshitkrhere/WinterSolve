@@ -6,13 +6,6 @@ param(
 $root = Split-Path -Parent $PSScriptRoot
 $env:PYTHONPATH = Join-Path $root "src"
 
-$bundledPython = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
-
-if (Test-Path $bundledPython) {
-    & $bundledPython -m wintersolve @Args
-    exit $LASTEXITCODE
-}
-
 $systemPython = Get-Command python -ErrorAction SilentlyContinue
 if ($systemPython) {
     & $systemPython.Source -m wintersolve @Args

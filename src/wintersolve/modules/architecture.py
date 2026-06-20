@@ -5,7 +5,6 @@ from pathlib import Path
 from wintersolve.models import ArchitectureSection
 from wintersolve.project import iter_project_files
 
-
 PURPOSE_BY_NAME = {
     "src": "Application or library source code",
     "app": "Application entrypoints and routes",
@@ -38,9 +37,10 @@ def map_architecture(root: Path) -> list[ArchitectureSection]:
             ArchitectureSection(
                 name=name,
                 path=name,
-                purpose=PURPOSE_BY_NAME.get(name, "Project area detected from repository structure"),
+                purpose=PURPOSE_BY_NAME.get(
+                    name, "Project area detected from repository structure"
+                ),
                 notable_files=section_files[:8],
             )
         )
     return sections[:20]
-

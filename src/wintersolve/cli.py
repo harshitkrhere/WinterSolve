@@ -80,7 +80,10 @@ def build_parser() -> argparse.ArgumentParser:
     explain.add_argument(
         "--project",
         default=".",
-        help="Project root used to keep file access scoped. Defaults to current directory.",
+        help=(
+            "Project root used to keep file access scoped. "
+            "Defaults to current directory."
+        ),
     )
 
     debug = subcommands.add_parser(
@@ -127,44 +130,54 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "scan":
         target = Path(args.path).expanduser().resolve()
-        result = scan_project(target)
-        print(render_scan_report(result, output_format=args.format))
-        return 0 if result.exists else 2
+        scan_res = scan_project(target)
+        print(render_scan_report(scan_res, output_format=args.format))
+        return 0 if scan_res.exists else 2
 
     if args.command == "brain":
         target = Path(args.path).expanduser().resolve()
-        result = build_brain_report(target)
-        output = render_brain_report(result, output_format=args.format)
+        brain_res = build_brain_report(target)
+        output = render_brain_report(brain_res, output_format=args.format)
         if args.output:
             output_path = Path(args.output).expanduser().resolve()
             output_path.write_text(output + "\n", encoding="utf-8")
             print(f"WinterSolve Repo Brain report saved to {output_path}")
         else:
             print(output)
-        return 0 if result.identity.exists else 2
+        return 0 if brain_res.identity.exists else 2
 
     if args.command == "explain":
         project = Path(args.project).expanduser().resolve()
         target = resolve_project_path(project, args.file)
-        print(render_explanation(explain_file(target)))
-        return 0
+        explain_res = explain_file(target)
+        print(render_explanation(explain_res))
+        return 0 if explain_res.exists else 2
 
     if args.command == "debug":
         if args.file:
-            print(render_debug_analysis(analyze_error_file(Path(args.file).expanduser().resolve())))
+            print(
+                render_debug_analysis(
+                    analyze_error_file(Path(args.file).expanduser().resolve())
+                )
+            )
         else:
             print(render_debug_analysis(analyze_error_text(args.text)))
         return 0
 
     if args.command == "docs":
         target = Path(args.path).expanduser().resolve()
-        print(render_docs_suggestions(suggest_docs(target), include_draft=args.draft_readme))
+        print(
+            render_docs_suggestions(
+                suggest_docs(target), include_draft=args.draft_readme
+            )
+        )
         return 0
 
     if args.command == "review":
         target = Path(args.path).expanduser().resolve()
-        print(render_review_result(review_changes(target)))
-        return 0
+        review_res = review_changes(target)
+        print(render_review_result(review_res))
+        return 0 if review_res.git_available else 2
 
     parser.print_help()
     return 0

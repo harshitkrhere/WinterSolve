@@ -1,14 +1,14 @@
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 
 from wintersolve.modules.brain import build_brain_report
 from wintersolve.modules.command_detector import detect_commands
 from wintersolve.modules.debugger import analyze_error_text
 from wintersolve.modules.docs_assistant import suggest_docs
 from wintersolve.modules.explainer import explain_file
-from wintersolve.modules.security import analyze_security, redact_secrets
 from wintersolve.modules.scanner import scan_project
+from wintersolve.modules.security import analyze_security, redact_secrets
 from wintersolve.project import resolve_project_path
 from wintersolve.report import render_brain_report, render_scan_report
 
@@ -18,11 +18,15 @@ class ScannerTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "README.md").write_text("# Demo\n", encoding="utf-8")
-            (root / "pyproject.toml").write_text("[project]\nname = 'demo'\n", encoding="utf-8")
+            (root / "pyproject.toml").write_text(
+                "[project]\nname = 'demo'\n", encoding="utf-8"
+            )
             (root / "src").mkdir()
             (root / "src" / "demo.py").write_text("print('hello')\n", encoding="utf-8")
             (root / "tests").mkdir()
-            (root / "tests" / "test_demo.py").write_text("def test_demo(): pass\n", encoding="utf-8")
+            (root / "tests" / "test_demo.py").write_text(
+                "def test_demo(): pass\n", encoding="utf-8"
+            )
 
             result = scan_project(root)
 
@@ -67,7 +71,9 @@ class ScannerTests(unittest.TestCase):
 
         self.assertEqual(result.likely_language, "Python")
         self.assertIn("Python dependency or import path issue", result.likely_causes)
-        self.assertNotIn("DNS, host, or network configuration issue", result.likely_causes)
+        self.assertNotIn(
+            "DNS, host, or network configuration issue", result.likely_causes
+        )
 
     def test_docs_assistant_suggests_missing_sections(self) -> None:
         with TemporaryDirectory() as directory:
@@ -83,7 +89,9 @@ class ScannerTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "README.md").write_text("# Demo\n\n## Usage\n", encoding="utf-8")
-            (root / "pyproject.toml").write_text("[project]\nname = 'demo'\n", encoding="utf-8")
+            (root / "pyproject.toml").write_text(
+                "[project]\nname = 'demo'\n", encoding="utf-8"
+            )
             (root / "src").mkdir()
             (root / "src" / "demo.py").write_text("print('hello')\n", encoding="utf-8")
 
@@ -141,11 +149,17 @@ class ScannerTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "README.md").write_text("# Mixed\n", encoding="utf-8")
-            (root / "pyproject.toml").write_text("[project]\nname = 'mixed'\n", encoding="utf-8")
-            (root / "package.json").write_text('{"scripts":{"test":"vitest"}}', encoding="utf-8")
+            (root / "pyproject.toml").write_text(
+                "[project]\nname = 'mixed'\n", encoding="utf-8"
+            )
+            (root / "package.json").write_text(
+                '{"scripts":{"test":"vitest"}}', encoding="utf-8"
+            )
             (root / "src").mkdir()
             (root / "src" / "app.py").write_text("print('hi')\n", encoding="utf-8")
-            (root / "src" / "app.ts").write_text("console.log('hi')\n", encoding="utf-8")
+            (root / "src" / "app.ts").write_text(
+                "console.log('hi')\n", encoding="utf-8"
+            )
 
             report = build_brain_report(root)
 

@@ -58,3 +58,38 @@ Before adding a new module, answer:
 - Keep offline behavior useful before adding AI provider behavior.
 - Use the workflow registry when adding a new public workflow.
 - Redact secret-like values before any future provider or export path can expose them.
+
+## Local Development
+
+To set up your environment for local development:
+
+1. Clone the repository and navigate into the root directory.
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+3. Install the package in editable mode with development dependencies:
+   ```bash
+   pip install -e .[dev]
+   ```
+   *Note: If you have `uv` installed, you can speed up this process using:*
+   ```bash
+   uv pip install -e .[dev]
+   ```
+
+To run tests and code quality tools locally:
+
+- **Run tests**:
+  ```bash
+  pytest
+  ```
+- **Run linter (Ruff)**:
+  ```bash
+  ruff check .
+  ```
+- **Run type checker (Mypy)**:
+  ```bash
+  mypy src
+  ```
+

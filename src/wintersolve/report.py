@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import json
 
-from wintersolve.models import BrainReport
+from wintersolve.models import (
+    ArchitectureSection,
+    BrainReport,
+    CommandCandidate,
+    SecuritySummary,
+)
 from wintersolve.modules.debugger import DebugAnalysis
 from wintersolve.modules.docs_assistant import DocsSuggestion
 from wintersolve.modules.explainer import FileExplanation
@@ -180,7 +185,9 @@ def _render_brain_markdown(result: BrainReport) -> str:
         _markdown_section("Test Layout", result.test_paths),
         _markdown_section("Documentation Health", result.docs_health),
         _markdown_section("Detected Commands", _format_commands(result.commands)),
-        _markdown_section("Architecture Map", _format_architecture(result.architecture)),
+        _markdown_section(
+            "Architecture Map", _format_architecture(result.architecture)
+        ),
         _markdown_section("Security and Privacy", _format_security(result.security)),
         _markdown_section("Risks", result.risks),
         _markdown_section("Recommendations", result.recommendations),
@@ -196,21 +203,22 @@ def _render_brain_markdown(result: BrainReport) -> str:
     return "\n\n".join(["\n".join(header), *sections]).rstrip()
 
 
-def _format_commands(commands: list[object]) -> list[str]:
+def _format_commands(commands: list[CommandCandidate]) -> list[str]:
     return [
         f"{command.name}: `{command.command}` ({command.source}, {command.confidence})"
         for command in commands
     ]
 
 
-def _format_architecture(sections: list[object]) -> list[str]:
+def _format_architecture(sections: list[ArchitectureSection]) -> list[str]:
     return [
-        f"{section.path}: {section.purpose}; notable: {', '.join(section.notable_files[:4])}"
+        f"{section.path}: {section.purpose}; "
+        f"notable: {', '.join(section.notable_files[:4])}"
         for section in sections
     ]
 
 
-def _format_security(security: object) -> list[str]:
+def _format_security(security: SecuritySummary) -> list[str]:
     items = [
         f"Status: {security.status}",
         f"Offline by default: {'yes' if security.offline_by_default else 'no'}",
@@ -218,7 +226,8 @@ def _format_security(security: object) -> list[str]:
     ]
     items.extend(security.notes)
     items.extend(
-        f"{finding.severity}: {finding.kind} in {finding.path}:{finding.line} -> {finding.evidence}"
+        f"{finding.severity}: {finding.kind} in "
+        f"{finding.path}:{finding.line} -> {finding.evidence}"
         for finding in security.findings
     )
     return items

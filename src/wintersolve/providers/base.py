@@ -24,4 +24,3 @@ class AIProvider(Protocol):
 
     def complete(self, prompt: str) -> ProviderResponse:
         """Return an AI completion for an already-redacted prompt."""
-

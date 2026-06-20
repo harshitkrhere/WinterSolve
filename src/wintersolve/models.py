@@ -46,6 +46,16 @@ class SecuritySummary:
     findings: list[SecurityFinding]
     notes: list[str]
 
+    @staticmethod
+    def empty() -> SecuritySummary:
+        return SecuritySummary(
+            status="not checked",
+            offline_by_default=True,
+            files_checked=0,
+            findings=[],
+            notes=["Project path does not exist."],
+        )
+
 
 @dataclass(frozen=True)
 class BrainReport:
@@ -65,12 +75,10 @@ class BrainReport:
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
         data["languages"] = [
-            {"name": name, "files": count}
-            for name, count in self.languages
+            {"name": name, "files": count} for name, count in self.languages
         ]
         return data
 
 
 def path_to_display(path: Path) -> str:
     return str(path)
-

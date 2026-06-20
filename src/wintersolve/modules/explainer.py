@@ -17,6 +17,7 @@ class FileExplanation:
     symbols: list[str]
     imports: list[str]
     risks: list[str]
+    errors: list[str]
 
 
 LANGUAGE_BY_EXTENSION = {
@@ -45,6 +46,7 @@ def explain_file(path: Path) -> FileExplanation:
             symbols=[],
             imports=[],
             risks=[f"File does not exist: {path}"],
+            errors=[],
         )
 
     size = path.stat().st_size
@@ -58,6 +60,7 @@ def explain_file(path: Path) -> FileExplanation:
             symbols=[],
             imports=[],
             risks=["File is too large or not recognized as text."],
+            errors=[],
         )
 
     content = read_text_file(path)
@@ -65,9 +68,10 @@ def explain_file(path: Path) -> FileExplanation:
     language = LANGUAGE_BY_EXTENSION.get(path.suffix.lower(), "Text")
     symbols: list[str] = []
     imports: list[str] = []
+    errors: list[str] = []
 
     if path.suffix.lower() == ".py":
-        symbols, imports = _analyze_python(content)
+        symbols, imports, errors = _analyze_python(content)
     else:
         symbols = _generic_symbols(lines)
         imports = _generic_imports(lines)
@@ -84,18 +88,19 @@ def explain_file(path: Path) -> FileExplanation:
         symbols=symbols,
         imports=imports,
         risks=risks,
+        errors=errors,
     )
 
 
-def _analyze_python(content: str) -> tuple[list[str], list[str]]:
+def _analyze_python(content: str) -> tuple[list[str], list[str], list[str]]:
     try:
         tree = ast.parse(content)
     except SyntaxError as error:
-        return [], [f"Python syntax error near line {error.lineno}: {error.msg}"]
+        return [], [], [f"Python syntax error near line {error.lineno}: {error.msg}"]
 
     symbols: list[str] = []
     imports: list[str] = []
-    for node in ast.walk(tree):
+    for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.ClassDef):
             symbols.append(f"class {node.name}")
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -105,7 +110,7 @@ def _analyze_python(content: str) -> tuple[list[str], list[str]]:
         elif isinstance(node, ast.ImportFrom):
             module = node.module or "."
             imports.append(module)
-    return sorted(set(symbols)), sorted(set(imports))
+    return sorted(set(symbols)), sorted(set(imports)), []
 
 
 def _generic_symbols(lines: list[str]) -> list[str]:
@@ -146,19 +151,25 @@ def _build_summary(
     if symbols:
         summary.append(f"WinterSolve found {len(symbols)} notable symbols or sections.")
     if imports:
-        summary.append(f"WinterSolve found {len(imports)} imports or dependency references.")
+        summary.append(
+            f"WinterSolve found {len(imports)} imports or dependency references."
+        )
     if not symbols and not imports:
-        summary.append("No major symbols or imports were detected with offline analysis.")
+        summary.append(
+            "No major symbols or imports were detected with offline analysis."
+        )
     return summary
 
 
 def _build_risks(lines: list[str], symbols: list[str], imports: list[str]) -> list[str]:
     risks: list[str] = []
     if len(lines) > 500:
-        risks.append("Large file: consider splitting responsibilities if the file is hard to maintain.")
+        risks.append(
+            "Large file: consider splitting responsibilities if the file is hard "
+            "to maintain."
+        )
     if not symbols and len(lines) > 120:
         risks.append("Long file with no obvious symbols or sections detected.")
     if any("syntax error" in item.lower() for item in imports):
         risks.append("The file may contain a syntax error.")
     return risks or ["No obvious file-level risks were detected."]
-
