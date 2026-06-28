@@ -37,9 +37,7 @@ def build_brain_report(root: Path) -> BrainReport:
     docs_health = (
         build_docs_health(docs.missing_sections, scan.missing_recommended_files)
         if docs
-        else [
-            "Project path does not exist, so documentation health could not be checked."
-        ]
+        else ["Project path does not exist, so documentation health could not be checked."]
     )
     risks = build_brain_risks(scan, security, len(commands))
     recommendations = build_brain_recommendations(scan, security, len(commands))

@@ -151,24 +151,23 @@ def _build_summary(
     if symbols:
         summary.append(f"WinterSolve found {len(symbols)} notable symbols or sections.")
     if imports:
-        summary.append(
-            f"WinterSolve found {len(imports)} imports or dependency references."
-        )
+        summary.append(f"WinterSolve found {len(imports)} imports or dependency references.")
     if not symbols and not imports:
-        summary.append(
-            "No major symbols or imports were detected with offline analysis."
-        )
+        summary.append("No major symbols or imports were detected with offline analysis.")
     return summary
+
+
+LARGE_FILE_THRESHOLD = 500
+LONG_FILE_THRESHOLD = 120
 
 
 def _build_risks(lines: list[str], symbols: list[str], imports: list[str]) -> list[str]:
     risks: list[str] = []
-    if len(lines) > 500:
+    if len(lines) > LARGE_FILE_THRESHOLD:
         risks.append(
-            "Large file: consider splitting responsibilities if the file is hard "
-            "to maintain."
+            "Large file: consider splitting responsibilities if the file is hard to maintain."
         )
-    if not symbols and len(lines) > 120:
+    if not symbols and len(lines) > LONG_FILE_THRESHOLD:
         risks.append("Long file with no obvious symbols or sections detected.")
     if any("syntax error" in item.lower() for item in imports):
         risks.append("The file may contain a syntax error.")

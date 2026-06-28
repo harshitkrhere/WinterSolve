@@ -20,7 +20,5 @@ class ProviderResponse:
 
 
 class AIProvider(Protocol):
-    config: ProviderConfig
-
     def complete(self, prompt: str) -> ProviderResponse:
         """Return an AI completion for an already-redacted prompt."""

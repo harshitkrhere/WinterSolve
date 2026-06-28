@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -74,10 +75,18 @@ class BrainReport:
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
-        data["languages"] = [
-            {"name": name, "files": count} for name, count in self.languages
-        ]
+        data["languages"] = [{"name": name, "files": count} for name, count in self.languages]
+        # Sanitize security findings evidence to remove control characters invalid in JSON
+        if "security" in data and "findings" in data["security"]:
+            for finding in data["security"]["findings"]:
+                if "evidence" in finding and isinstance(finding["evidence"], str):
+                    finding["evidence"] = _sanitize_json_string(finding["evidence"])
         return data
+
+
+def _sanitize_json_string(text: str) -> str:
+    """Remove control characters that are invalid in JSON strings."""
+    return re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
 
 
 def path_to_display(path: Path) -> str:

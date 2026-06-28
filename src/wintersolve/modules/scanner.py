@@ -4,11 +4,14 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
+from wintersolve.logging_config import get_logger
 from wintersolve.project import (
     LANGUAGE_BY_EXTENSION,
     is_ignored,
     iter_project_files,
 )
+
+logger = get_logger("wintersolve.modules.scanner")
 
 FRAMEWORK_MARKERS = {
     "package.json": "Node.js",
@@ -67,7 +70,9 @@ class ScanResult:
 
 
 def scan_project(path: Path) -> ScanResult:
+    logger.debug("Scanning project at %s", path)
     if not path.exists() or not path.is_dir():
+        logger.warning("Project path does not exist or is not a directory: %s", path)
         return ScanResult(
             path=path,
             exists=False,
@@ -94,9 +99,7 @@ def scan_project(path: Path) -> ScanResult:
 
     files = [pf.path for pf in project_files]
     relative_files = {pf.relative_path for pf in project_files}
-    relative_dirs = {
-        _to_posix(directory.relative_to(path)) for directory in directories
-    }
+    relative_dirs = {_to_posix(directory.relative_to(path)) for directory in directories}
 
     language_counts = Counter(
         LANGUAGE_BY_EXTENSION[file.suffix.lower()]
@@ -105,11 +108,7 @@ def scan_project(path: Path) -> ScanResult:
     )
 
     frameworks = sorted(
-        {
-            framework
-            for marker, framework in FRAMEWORK_MARKERS.items()
-            if marker in relative_files
-        }
+        {framework for marker, framework in FRAMEWORK_MARKERS.items() if marker in relative_files}
     )
 
     important_files = [file for file in IMPORTANT_FILES if file in relative_files]
@@ -140,6 +139,13 @@ def scan_project(path: Path) -> ScanResult:
         frameworks=frameworks,
         missing_recommended_files=missing_recommended_files,
         likely_test_paths=likely_test_paths,
+    )
+
+    logger.info(
+        "Scan complete: %d files, %d dirs, frameworks: %s",
+        len(files),
+        len(directories),
+        frameworks,
     )
 
     return ScanResult(
@@ -199,9 +205,7 @@ def _build_risks(
     if not likely_test_paths:
         risks.append("No obvious test files or test directories were detected.")
 
-    return risks or [
-        "No major repository health risks were detected by the basic scan."
-    ]
+    return risks or ["No major repository health risks were detected by the basic scan."]
 
 
 def _build_recommendations(
@@ -212,17 +216,12 @@ def _build_recommendations(
     recommendations: list[str] = []
 
     for file in missing_recommended_files:
-        recommendations.append(
-            f"Add {file} to improve project trust and maintainability."
-        )
+        recommendations.append(f"Add {file} to improve project trust and maintainability.")
     if not likely_test_paths:
-        recommendations.append(
-            "Add or document tests so contributors can verify changes."
-        )
+        recommendations.append("Add or document tests so contributors can verify changes.")
     if not frameworks:
         recommendations.append(
-            "Add clear setup metadata such as pyproject.toml, package.json, "
-            "go.mod, or Cargo.toml."
+            "Add clear setup metadata such as pyproject.toml, package.json, go.mod, or Cargo.toml."
         )
     if frameworks:
         recommendations.append(RECOMMEND_DOCUMENT_COMMANDS)

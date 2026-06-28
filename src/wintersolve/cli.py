@@ -1,9 +1,15 @@
 from __future__ import annotations
 
-import argparse
+import logging
+import sys
 from pathlib import Path
+from typing import Annotated
 
-from wintersolve import __version__
+import typer
+from rich.console import Console
+from rich.table import Table
+
+from wintersolve import __version__, configure_logging, get_logger
 from wintersolve.modules.brain import build_brain_report
 from wintersolve.modules.debugger import analyze_error_file, analyze_error_text
 from wintersolve.modules.docs_assistant import suggest_docs
@@ -19,169 +25,286 @@ from wintersolve.report import (
     render_review_result,
     render_scan_report,
 )
+from wintersolve.workflows.registry import get_workflows
+
+logger = get_logger("wintersolve.cli")
+
+app = typer.Typer(
+    name="wintersolve",
+    help="Developer + AI toolkit for practical engineering workflows.",
+    add_completion=False,
+    rich_markup_mode="rich",
+    no_args_is_help=True,
+)
+console = Console()
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="wintersolve",
-        description="Developer + AI toolkit for practical engineering workflows.",
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"WinterSolve {__version__}",
-    )
+def version_callback(value: bool) -> None:
+    if value:
+        console.print(f"WinterSolve {__version__}")
+        raise typer.Exit()
 
-    subcommands = parser.add_subparsers(dest="command")
 
-    scan = subcommands.add_parser(
-        "scan",
-        help="Inspect a repository and generate a practical health report.",
-    )
-    scan.add_argument(
-        "path",
-        nargs="?",
-        default=".",
-        help="Project directory to scan. Defaults to the current directory.",
-    )
-    scan.add_argument(
-        "--format",
-        choices=["text", "markdown"],
-        default="text",
-        help="Output format.",
-    )
-
-    brain = subcommands.add_parser(
-        "brain",
-        help="Build a full project intelligence report.",
-    )
-    brain.add_argument(
-        "path",
-        nargs="?",
-        default=".",
-        help="Project directory to analyze. Defaults to the current directory.",
-    )
-    brain.add_argument(
-        "--format",
-        choices=["text", "markdown", "json"],
-        default="text",
-        help="Output format.",
-    )
-    brain.add_argument(
-        "--output",
-        help="Optional file path to save the report.",
-    )
-
-    explain = subcommands.add_parser(
-        "explain",
-        help="Explain a source file with offline static analysis.",
-    )
-    explain.add_argument("file", help="File to explain.")
-    explain.add_argument(
-        "--project",
-        default=".",
-        help=(
-            "Project root used to keep file access scoped. "
-            "Defaults to current directory."
+@app.callback()
+def _configure(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            "-V",
+            help="Show version and exit.",
+            callback=version_callback,
+            is_eager=True,
         ),
-    )
-
-    debug = subcommands.add_parser(
-        "debug",
-        help="Analyze an error message, log file, or stack trace.",
-    )
-    debug_input = debug.add_mutually_exclusive_group(required=True)
-    debug_input.add_argument("--text", help="Error text to analyze.")
-    debug_input.add_argument("--file", help="File containing error output.")
-
-    docs = subcommands.add_parser(
-        "docs",
-        help="Suggest documentation improvements for a project.",
-    )
-    docs.add_argument(
-        "path",
-        nargs="?",
-        default=".",
-        help="Project directory to inspect. Defaults to the current directory.",
-    )
-    docs.add_argument(
-        "--draft-readme",
-        action="store_true",
-        help="Include a starter README draft in the output.",
-    )
-
-    review = subcommands.add_parser(
-        "review",
-        help="Review local Git changes and produce a checklist.",
-    )
-    review.add_argument(
-        "path",
-        nargs="?",
-        default=".",
-        help="Git repository to review. Defaults to the current directory.",
-    )
-
-    return parser
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose logging."),
+    ] = False,
+) -> None:
+    """WinterSolve - Developer + AI toolkit for practical engineering workflows."""
+    if verbose:
+        configure_logging(level=logging.DEBUG)
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
+def main() -> None:
+    """Console script entry point."""
+    app()
 
-    if args.command == "scan":
-        target = Path(args.path).expanduser().resolve()
-        scan_res = scan_project(target)
-        print(render_scan_report(scan_res, output_format=args.format))
-        return 0 if scan_res.exists else 2
 
-    if args.command == "brain":
-        target = Path(args.path).expanduser().resolve()
-        brain_res = build_brain_report(target)
-        output = render_brain_report(brain_res, output_format=args.format)
-        if args.output:
-            output_path = Path(args.output).expanduser().resolve()
-            output_path.write_text(output + "\n", encoding="utf-8")
-            print(f"WinterSolve Repo Brain report saved to {output_path}")
+@app.command()
+def scan(
+    path: Annotated[
+        Path,
+        typer.Argument(
+            help="Project directory to scan.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path(),
+    format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            "-f",
+            help="Output format: text or markdown.",
+            case_sensitive=False,
+        ),
+    ] = "text",
+) -> None:
+    """Inspect a repository and generate a practical health report."""
+    try:
+        scan_res = scan_project(path)
+        output = render_scan_report(scan_res, output_format=format)
+        console.print(output)
+        if not scan_res.exists:
+            raise typer.Exit(code=2)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from None
+
+
+@app.command()
+def brain(
+    path: Annotated[
+        Path,
+        typer.Argument(
+            help="Project directory to analyze.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path(),
+    format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            "-f",
+            help="Output format: text, markdown, or json.",
+            case_sensitive=False,
+        ),
+    ] = "text",
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Optional file path to save the report.",
+            resolve_path=True,
+        ),
+    ] = None,
+) -> None:
+    """Build a full project intelligence report (Repo Brain)."""
+    try:
+        brain_res = build_brain_report(path)
+        rendered = render_brain_report(brain_res, output_format=format)
+
+        if output:
+            output.write_text(rendered + "\n", encoding="utf-8")
+            console.print(f"[green]Report saved to[/green] {output}")
+        elif format == "json":
+            # Print raw JSON to stdout without Rich formatting
+            sys.stdout.write(rendered + "\n")
         else:
-            print(output)
-        return 0 if brain_res.identity.exists else 2
+            console.print(rendered)
 
-    if args.command == "explain":
-        project = Path(args.project).expanduser().resolve()
-        target = resolve_project_path(project, args.file)
+        if not brain_res.identity.exists:
+            raise typer.Exit(code=2)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from None
+
+
+@app.command()
+def explain(
+    file: Annotated[
+        Path,
+        typer.Argument(
+            help="File to explain.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+        ),
+    ],
+    project: Annotated[
+        Path,
+        typer.Option(
+            "--project",
+            "-p",
+            help="Project root used to keep file access scoped.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path(),
+) -> None:
+    """Explain a source file with offline static analysis."""
+    try:
+        target = resolve_project_path(project, str(file))
         explain_res = explain_file(target)
-        print(render_explanation(explain_res))
-        return 0 if explain_res.exists else 2
+        console.print(render_explanation(explain_res))
+        if not explain_res.exists:
+            raise typer.Exit(code=2)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from None
 
-    if args.command == "debug":
-        if args.file:
-            print(
-                render_debug_analysis(
-                    analyze_error_file(Path(args.file).expanduser().resolve())
-                )
-            )
+
+@app.command()
+def debug(
+    text: Annotated[
+        str | None,
+        typer.Option("--text", "-t", help="Error text to analyze.", rich_help_panel="Input"),
+    ] = None,
+    file: Annotated[
+        Path | None,
+        typer.Option(
+            "--file",
+            help="File containing error output.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            rich_help_panel="Input",
+        ),
+    ] = None,
+) -> None:
+    """Analyze an error message, log file, or stack trace."""
+    if text is None and file is None:
+        console.print("[red]Error:[/red] Either --text or --file must be provided.")
+        raise typer.Exit(code=1)
+    if text is not None and file is not None:
+        console.print("[red]Error:[/red] Provide only one of --text or --file.")
+        raise typer.Exit(code=1)
+
+    try:
+        if file:
+            result = analyze_error_file(file)
         else:
-            print(render_debug_analysis(analyze_error_text(args.text)))
-        return 0
+            result = analyze_error_text(text or "")
+        console.print(render_debug_analysis(result))
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from None
 
-    if args.command == "docs":
-        target = Path(args.path).expanduser().resolve()
-        print(
-            render_docs_suggestions(
-                suggest_docs(target), include_draft=args.draft_readme
-            )
-        )
-        return 0
 
-    if args.command == "review":
-        target = Path(args.path).expanduser().resolve()
-        review_res = review_changes(target)
-        print(render_review_result(review_res))
-        return 0 if review_res.git_available else 2
+@app.command()
+def docs(
+    path: Annotated[
+        Path,
+        typer.Argument(
+            help="Project directory to inspect.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path(),
+    draft_readme: Annotated[
+        bool,
+        typer.Option("--draft-readme", help="Include a starter README draft in the output."),
+    ] = False,
+) -> None:
+    """Suggest documentation improvements for a project."""
+    try:
+        result = suggest_docs(path)
+        console.print(render_docs_suggestions(result, include_draft=draft_readme))
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from None
 
-    parser.print_help()
-    return 0
+
+@app.command()
+def review(
+    path: Annotated[
+        Path,
+        typer.Argument(
+            help="Git repository to review.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path(),
+) -> None:
+    """Review local Git changes and produce a checklist."""
+    try:
+        review_res = review_changes(path)
+        console.print(render_review_result(review_res))
+        if not review_res.git_available:
+            raise typer.Exit(code=2)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from None
+
+
+@app.command()
+def workflows() -> None:
+    """List available workflows and their output formats."""
+
+    table = Table(title="WinterSolve Workflows")
+    table.add_column("Name", style="cyan")
+    table.add_column("Summary", style="white")
+    table.add_column("Offline", justify="center")
+    table.add_column("Output Formats", style="green")
+
+    for wf in get_workflows():
+        table.add_row(wf.name, wf.summary, "✓" if wf.offline else "✗", ", ".join(wf.output_formats))
+
+    console.print(table)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

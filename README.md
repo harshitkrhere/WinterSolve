@@ -187,7 +187,7 @@ See [docs/GITHUB_LAUNCH.md](docs/GITHUB_LAUNCH.md) for GitHub install, app/websi
 
 ## Development Setup
 
-WinterSolve currently has no runtime dependencies.
+WinterSolve requires `typer>=0.12` and `rich>=13.0` at runtime.
 
 ### Install the Clean `wintersolve` Command
 

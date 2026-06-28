@@ -4,9 +4,7 @@ from wintersolve.models import SecuritySummary
 from wintersolve.modules.scanner import RECOMMEND_DOCUMENT_COMMANDS, ScanResult
 
 
-def build_docs_health(
-    missing_sections: list[str], missing_files: list[str]
-) -> list[str]:
+def build_docs_health(missing_sections: list[str], missing_files: list[str]) -> list[str]:
     health: list[str] = []
     if missing_sections:
         health.append(f"README is missing sections: {', '.join(missing_sections[:6])}.")
@@ -19,25 +17,19 @@ def build_docs_health(
     return health
 
 
-def build_brain_risks(
-    scan: ScanResult, security: SecuritySummary, command_count: int
-) -> list[str]:
+def build_brain_risks(scan: ScanResult, security: SecuritySummary, command_count: int) -> list[str]:
     risks = list(scan.risks)
     if security.findings:
         secrets = sum(
             1
             for f in security.findings
-            if "secret" in f.kind.lower()
-            or "token" in f.kind.lower()
-            or "key" in f.kind.lower()
+            if "secret" in f.kind.lower() or "token" in f.kind.lower() or "key" in f.kind.lower()
         )
         vulns = len(security.findings) - secrets
         if secrets > 0:
             risks.append(f"{secrets} potential secret exposure(s) detected.")
         if vulns > 0:
-            risks.append(
-                f"{vulns} potential code vulnerabilities detected in the audit."
-            )
+            risks.append(f"{vulns} potential code vulnerabilities detected in the audit.")
     if command_count == 0:
         risks.append("No setup, test, build, or run commands were detected.")
     if not scan.likely_source_paths:
@@ -56,9 +48,7 @@ def build_brain_recommendations(
     if security.findings:
         kinds = {f.kind.lower() for f in security.findings}
         if any("secret" in k or "token" in k or "key" in k for k in kinds):
-            recommendations.append(
-                "Rotate exposed credentials found in the security audit."
-            )
+            recommendations.append("Rotate exposed credentials found in the security audit.")
         if any("sql" in k for k in kinds):
             framework_hint = "using an ORM or parameterized queries"
             if scan.frameworks:
@@ -71,17 +61,14 @@ def build_brain_recommendations(
             )
         if any("deserialization" in k or "pickle" in k for k in kinds):
             recommendations.append(
-                "Replace unsafe deserialization (like pickle) with safe formats "
-                "like JSON."
+                "Replace unsafe deserialization (like pickle) with safe formats like JSON."
             )
         if any("bandit" in k for k in kinds):
             recommendations.append(
                 "Review and fix the specific static analysis issues flagged by Bandit."
             )
     if command_count == 0:
-        recommendations.append(
-            "Document setup, run, build, and test commands in README.md."
-        )
+        recommendations.append("Document setup, run, build, and test commands in README.md.")
     if scan.likely_source_paths and scan.likely_test_paths:
         recommendations.append(
             "Connect source areas to test coverage in contributor documentation."
@@ -104,14 +91,12 @@ def build_next_actions(
         if high_sev > 0:
             actions.insert(
                 0,
-                f"Fix the {high_sev} high-severity security vulnerabilities "
-                "immediately.",
+                f"Fix the {high_sev} high-severity security vulnerabilities immediately.",
             )
         else:
             actions.insert(
                 0,
-                "Review the potential security findings before sharing this "
-                "repository or report.",
+                "Review the potential security findings before sharing this repository or report.",
             )
     if command_count == 0:
         actions.insert(
@@ -119,9 +104,7 @@ def build_next_actions(
             "Add documented setup and test commands so contributors can be productive.",
         )
     if has_architecture:
-        actions.append(
-            "Use the architecture map as the first contributor onboarding guide."
-        )
+        actions.append("Use the architecture map as the first contributor onboarding guide.")
     return _dedupe(actions)
 
 

@@ -71,30 +71,17 @@ def _build_risks(changed_files: list[str]) -> list[str]:
         return ["No local changes were detected."]
 
     risks: list[str] = []
-    if any(
-        file.endswith((".py", ".js", ".ts", ".tsx", ".go", ".rs"))
-        for file in changed_files
-    ):
-        risks.append(
-            "Code files changed: tests or manual verification should be included."
-        )
-    if any(
-        file.endswith((".yml", ".yaml", ".toml", ".json")) for file in changed_files
-    ):
-        risks.append(
-            "Configuration files changed: check setup, build, and CI behavior."
-        )
+    if any(file.endswith((".py", ".js", ".ts", ".tsx", ".go", ".rs")) for file in changed_files):
+        risks.append("Code files changed: tests or manual verification should be included.")
+    if any(file.endswith((".yml", ".yaml", ".toml", ".json")) for file in changed_files):
+        risks.append("Configuration files changed: check setup, build, and CI behavior.")
     if any("test" in file.lower() for file in changed_files):
-        risks.append(
-            "Test files changed: confirm tests still cover the intended behavior."
-        )
+        risks.append("Test files changed: confirm tests still cover the intended behavior.")
     if any(
-        file.lower() in {"readme.md", "contributing.md", "security.md"}
-        for file in changed_files
+        file.lower() in {"readme.md", "contributing.md", "security.md"} for file in changed_files
     ):
         risks.append(
-            "Project documentation changed: verify commands and examples are "
-            "still accurate."
+            "Project documentation changed: verify commands and examples are still accurate."
         )
     return risks or ["No obvious review risks were detected from file names alone."]
 
@@ -107,8 +94,6 @@ def _build_checklist(changed_files: list[str]) -> list[str]:
     ]
     if any(file.endswith((".py", ".js", ".ts", ".tsx")) for file in changed_files):
         checklist.append("Review error handling and edge cases in changed code.")
-    if any(
-        file.endswith((".json", ".toml", ".yml", ".yaml")) for file in changed_files
-    ):
+    if any(file.endswith((".json", ".toml", ".yml", ".yaml")) for file in changed_files):
         checklist.append("Validate changed configuration files before merging.")
     return checklist

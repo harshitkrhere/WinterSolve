@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 from wintersolve.models import SecurityFinding, SecuritySummary
 from wintersolve.project import is_probably_text, iter_project_files, read_text_file
+
+logger = logging.getLogger(__name__)
 
 SECRET_PATTERNS = [
     ("OpenAI API key", re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b")),
@@ -24,9 +28,7 @@ SECRET_PATTERNS = [
     ("Google API key", re.compile(r"\bAIza[0-9A-Za-z-_]{35}\b")),
     (
         "Generic assignment secret",
-        re.compile(
-            r"(?i)\b(api[_-]?key|secret|token|password)\b\s*[:=]\s*['\"]?([^'\"\s]{12,})"
-        ),
+        re.compile(r"(?i)\b(api[_-]?key|secret|token|password)\b\s*[:=]\s*['\"]?([^'\"\s]{12,})"),
     ),
 ]
 
@@ -78,19 +80,19 @@ def analyze_security(root: Path) -> SecuritySummary:
                     )
 
     try:
-        import sys
         bandit_result = subprocess.run(
             [sys.executable, "-m", "bandit", "-r", str(root), "-f", "json"],
             capture_output=True,
             text=True,
             timeout=30,
+            check=False,
         )
         if bandit_result.stdout:
             data = json.loads(bandit_result.stdout)
             for issue in data.get("results", []):
                 rel_path = issue["filename"]
                 if rel_path.startswith(str(root)):
-                    rel_path = rel_path[len(str(root)):].lstrip("/\\")
+                    rel_path = rel_path[len(str(root)) :].lstrip("/\\")
                 findings.append(
                     SecurityFinding(
                         path=rel_path,
@@ -103,10 +105,15 @@ def analyze_security(root: Path) -> SecuritySummary:
     except Exception:
         pass
 
+    logger.info(
+        "Security scan complete: %d files checked, %d findings",
+        files_checked,
+        len(findings),
+    )
+
     status = "attention needed" if findings else "clear"
     notes = [
-        "WinterSolve combines offline heuristics and static analysis (Bandit) "
-        "to detect flaws.",
+        "WinterSolve combines offline heuristics and static analysis (Bandit) to detect flaws.",
         "Potential secrets are redacted in reports.",
     ]
     if findings:
@@ -121,6 +128,9 @@ def analyze_security(root: Path) -> SecuritySummary:
     )
 
 
+MIN_SECRET_GROUPS = 2
+
+
 def redact_secrets(text: str) -> str:
     redacted = text
     for _, pattern in SECRET_PATTERNS:
@@ -129,6 +139,6 @@ def redact_secrets(text: str) -> str:
 
 
 def _replacement(match: re.Match[str]) -> str:
-    if len(match.groups()) >= 2:
+    if len(match.groups()) >= MIN_SECRET_GROUPS:
         return f"{match.group(1)}=<redacted>"
     return "<redacted-secret>"

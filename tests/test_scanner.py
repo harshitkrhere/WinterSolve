@@ -1,6 +1,7 @@
-import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+import pytest
 
 from wintersolve.modules.brain import build_brain_report
 from wintersolve.modules.command_detector import detect_commands
@@ -13,14 +14,12 @@ from wintersolve.project import resolve_project_path
 from wintersolve.report import render_brain_report, render_scan_report
 
 
-class ScannerTests(unittest.TestCase):
+class TestScanner:
     def test_scan_detects_python_project_health_signals(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "README.md").write_text("# Demo\n", encoding="utf-8")
-            (root / "pyproject.toml").write_text(
-                "[project]\nname = 'demo'\n", encoding="utf-8"
-            )
+            (root / "pyproject.toml").write_text("[project]\nname = 'demo'\n", encoding="utf-8")
             (root / "src").mkdir()
             (root / "src" / "demo.py").write_text("print('hello')\n", encoding="utf-8")
             (root / "tests").mkdir()
@@ -30,18 +29,18 @@ class ScannerTests(unittest.TestCase):
 
             result = scan_project(root)
 
-        self.assertTrue(result.exists)
-        self.assertIn(("Python", 2), result.languages)
-        self.assertIn("Python package", result.frameworks)
-        self.assertIn("README.md", result.important_files)
-        self.assertIn("tests", result.likely_test_paths)
+        assert result.exists
+        assert ("Python", 2) in result.languages
+        assert "Python package" in result.frameworks
+        assert "README.md" in result.important_files
+        assert "tests" in result.likely_test_paths
 
     def test_scan_reports_missing_directory(self) -> None:
         result = scan_project(Path("definitely-missing-directory").resolve())
 
-        self.assertFalse(result.exists)
-        self.assertEqual(result.total_files, 0)
-        self.assertTrue(result.risks)
+        assert not result.exists
+        assert result.total_files == 0
+        assert result.risks
 
     def test_markdown_report_renders_recommendations(self) -> None:
         with TemporaryDirectory() as directory:
@@ -51,9 +50,11 @@ class ScannerTests(unittest.TestCase):
 
         report = render_scan_report(result, output_format="markdown")
 
-        self.assertIn("# WinterSolve Repo Scan", report)
-        self.assertIn("## Recommendations", report)
+        assert "# WinterSolve Repo Scan" in report
+        assert "## Recommendations" in report
 
+
+class TestExplainer:
     def test_explain_file_detects_python_symbols(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -62,19 +63,21 @@ class ScannerTests(unittest.TestCase):
 
             result = explain_file(target)
 
-        self.assertEqual(result.language, "Python")
-        self.assertIn("class Demo", result.symbols)
-        self.assertIn("os", result.imports)
+        assert result.language == "Python"
+        assert "class Demo" in result.symbols
+        assert "os" in result.imports
 
+
+class TestDebugger:
     def test_debugger_detects_missing_python_module(self) -> None:
         result = analyze_error_text("ModuleNotFoundError: No module named 'demo'")
 
-        self.assertEqual(result.likely_language, "Python")
-        self.assertIn("Python dependency or import path issue", result.likely_causes)
-        self.assertNotIn(
-            "DNS, host, or network configuration issue", result.likely_causes
-        )
+        assert result.likely_language == "Python"
+        assert "Python dependency or import path issue" in result.likely_causes
+        assert "DNS, host, or network configuration issue" not in result.likely_causes
 
+
+class TestDocsAssistant:
     def test_docs_assistant_suggests_missing_sections(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -82,26 +85,53 @@ class ScannerTests(unittest.TestCase):
 
             result = suggest_docs(root)
 
-        self.assertIn("Installation", result.missing_sections)
-        self.assertIn("# Demo", result.readme_draft)
+        assert "Installation" in result.missing_sections
+        assert "# Demo" in result.readme_draft
 
+
+class TestBrainReport:
     def test_brain_report_generates_json_shape(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "README.md").write_text("# Demo\n\n## Usage\n", encoding="utf-8")
-            (root / "pyproject.toml").write_text(
-                "[project]\nname = 'demo'\n", encoding="utf-8"
-            )
+            (root / "pyproject.toml").write_text("[project]\nname = 'demo'\n", encoding="utf-8")
             (root / "src").mkdir()
             (root / "src" / "demo.py").write_text("print('hello')\n", encoding="utf-8")
 
             report = build_brain_report(root)
             rendered = render_brain_report(report, output_format="json")
 
-        self.assertIn('"identity"', rendered)
-        self.assertIn('"security"', rendered)
-        self.assertIn('"commands"', rendered)
+        assert '"identity"' in rendered
+        assert '"security"' in rendered
+        assert '"commands"' in rendered
 
+    def test_brain_report_handles_empty_repo(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = build_brain_report(root)
+
+        assert report.identity.exists
+        assert "No files were found in the project directory." in report.risks
+
+    def test_brain_report_detects_mixed_python_node_repo(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "README.md").write_text("# Mixed\n", encoding="utf-8")
+            (root / "pyproject.toml").write_text("[project]\nname = 'mixed'\n", encoding="utf-8")
+            (root / "package.json").write_text('{"scripts":{"test":"vitest"}}', encoding="utf-8")
+            (root / "src").mkdir()
+            (root / "src" / "app.py").write_text("print('hi')\n", encoding="utf-8")
+            (root / "src" / "app.ts").write_text("console.log('hi')\n", encoding="utf-8")
+
+            report = build_brain_report(root)
+
+        assert "Python package" in report.stack
+        assert "Node.js" in report.stack
+        assert ("Python", 1) in report.languages
+        assert ("TypeScript", 1) in report.languages
+
+
+class TestCommandDetector:
     def test_command_detector_reads_package_scripts(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -112,9 +142,11 @@ class ScannerTests(unittest.TestCase):
 
             commands = detect_commands(root)
 
-        self.assertIn("npm run dev", [command.command for command in commands])
-        self.assertIn("npm run test", [command.command for command in commands])
+        assert "npm run dev" in [command.command for command in commands]
+        assert "npm run test" in [command.command for command in commands]
 
+
+class TestSecurity:
     def test_security_redacts_secret_like_values(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -126,48 +158,19 @@ class ScannerTests(unittest.TestCase):
 
             security = analyze_security(root)
 
-        self.assertEqual(security.status, "attention needed")
-        self.assertIn("<redacted>", security.findings[0].evidence)
-        self.assertIn("<redacted>", redact_secrets("token=" + "1234567890abcdef"))
+        assert security.status == "attention needed"
+        assert "<redacted>" in security.findings[0].evidence
+        assert "<redacted>" in redact_secrets("token=" + "1234567890abcdef")
 
+
+class TestPathSafety:
     def test_resolve_project_path_blocks_parent_escape(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory).resolve()
 
-            with self.assertRaises(ValueError):
+            with pytest.raises(ValueError):
                 resolve_project_path(root, "../outside.py")
-
-    def test_brain_report_handles_empty_repo(self) -> None:
-        with TemporaryDirectory() as directory:
-            root = Path(directory)
-            report = build_brain_report(root)
-
-        self.assertTrue(report.identity.exists)
-        self.assertIn("No files were found in the project directory.", report.risks)
-
-    def test_brain_report_detects_mixed_python_node_repo(self) -> None:
-        with TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / "README.md").write_text("# Mixed\n", encoding="utf-8")
-            (root / "pyproject.toml").write_text(
-                "[project]\nname = 'mixed'\n", encoding="utf-8"
-            )
-            (root / "package.json").write_text(
-                '{"scripts":{"test":"vitest"}}', encoding="utf-8"
-            )
-            (root / "src").mkdir()
-            (root / "src" / "app.py").write_text("print('hi')\n", encoding="utf-8")
-            (root / "src" / "app.ts").write_text(
-                "console.log('hi')\n", encoding="utf-8"
-            )
-
-            report = build_brain_report(root)
-
-        self.assertIn("Python package", report.stack)
-        self.assertIn("Node.js", report.stack)
-        self.assertIn(("Python", 1), report.languages)
-        self.assertIn(("TypeScript", 1), report.languages)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main([__file__, "-v"])

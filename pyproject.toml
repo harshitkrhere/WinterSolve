@@ -4,45 +4,58 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wintersolve"
-version = "0.1.0"
+version = "0.2.0"
 description = "Open-source developer + AI toolkit for practical engineering workflows."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
   { name = "WinterSolve Contributors" }
 ]
-keywords = ["ai", "developer-tools", "cli", "automation", "codebase-analysis"]
+keywords = ["ai", "developer-tools", "cli", "automation", "codebase-analysis", "repository-analysis", "security-scanning"]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 3 - Alpha",
   "Environment :: Console",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Software Development",
   "Topic :: Software Development :: Documentation",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Security",
   "Topic :: Utilities"
 ]
-dependencies = []
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "mypy", "ruff", "bandit", "pre-commit"]
+security = ["bandit>=1.7"]
+ai = ["openai>=1.0", "anthropic>=0.18"]
+all = ["bandit>=1.7", "openai>=1.0", "anthropic>=0.18"]
 
 [project.scripts]
 wintersolve = "wintersolve.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/harshitkrhere/WinterSolve"
+Repository = "https://github.com/harshitkrhere/WinterSolve"
+Issues = "https://github.com/harshitkrhere/WinterSolve/issues"
+Documentation = "https://github.com/harshitkrhere/WinterSolve/tree/main/docs"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[project.optional-dependencies]
-dev = ["pytest", "mypy", "ruff", "bandit"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-
 [tool.ruff]
 target-version = "py310"
-line-length = 88
+line-length = 100
+src = ["src"]
 
 [tool.ruff.lint]
 select = [
@@ -52,11 +65,33 @@ select = [
     "I",   # isort
     "B",   # flake8-bugbear
     "UP",  # pyupgrade
+    "C4",  # flake8-comprehensions
+    "DTZ", # flake8-datetimez
+    "T10", # flake8-debugger
+    "PTH", # flake8-use-pathlib
+    "ERA", # eradicate
+    "PL",  # pylint
+    "TRY", # tryceratops
 ]
-ignore = []
+ignore = [
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "TRY301",  # CLI commands intentionally raise Typer exits after rendering output
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["wintersolve"]
+known-third-party = ["typer", "rich", "pytest", "bandit", "openai", "anthropic"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--strict-markers --strict-config -v"
 
 [tool.mypy]
 python_version = "3.10"
@@ -64,8 +99,17 @@ strict = true
 warn_return_any = true
 warn_unused_configs = true
 show_error_codes = true
+explicit_package_bases = true
 
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
+[tool.coverage.run]
+source = ["src/wintersolve"]
+omit = ["tests/*", "*/__pycache__/*"]
 
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

@@ -58,9 +58,7 @@ def analyze_error_text(text: str, source: str = "inline input") -> DebugAnalysis
     js_frames = re.findall(r"\(?([A-Za-z]:?[^()\s]+):(\d+):(\d+)\)?", text)
     if js_frames:
         for file_name, line_number, column in js_frames[:8]:
-            signals.append(
-                f"JavaScript stack frame: {file_name}:{line_number}:{column}"
-            )
+            signals.append(f"JavaScript stack frame: {file_name}:{line_number}:{column}")
 
     likely_language = _guess_language(text)
     next_steps = _build_next_steps(likely_causes, signals)
@@ -103,22 +101,14 @@ def _build_next_steps(likely_causes: list[str], signals: list[str]) -> list[str]
     steps = ["Re-run the failing command and capture the full error output."]
     joined = " ".join(likely_causes).lower()
     if "dependency" in joined:
-        steps.append(
-            "Check that dependencies are installed and the active environment is "
-            "correct."
-        )
+        steps.append("Check that dependencies are installed and the active environment is correct.")
     if "syntax" in joined:
         steps.append("Open the referenced file and inspect the reported line first.")
     if "path" in joined or "command" in joined:
         steps.append(
-            "Verify the command exists and that the project setup instructions "
-            "were followed."
+            "Verify the command exists and that the project setup instructions were followed."
         )
     if signals and "No stack-frame" not in signals[0]:
-        steps.append(
-            "Start with the first stack frame that points into your project code."
-        )
-    steps.append(
-        "After applying a fix, add or run a small test that reproduces the failure."
-    )
+        steps.append("Start with the first stack frame that points into your project code.")
+    steps.append("After applying a fix, add or run a small test that reproduces the failure.")
     return steps

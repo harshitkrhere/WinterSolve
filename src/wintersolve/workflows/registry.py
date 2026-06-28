@@ -13,9 +13,7 @@ class Workflow:
 
 def get_workflows() -> list[Workflow]:
     return [
-        Workflow(
-            "scan", "Lightweight repository health scan", True, ["text", "markdown"]
-        ),
+        Workflow("scan", "Lightweight repository health scan", True, ["text", "markdown"]),
         Workflow("explain", "Offline file explanation", True, ["text"]),
         Workflow("debug", "Error and stack trace analysis", True, ["text"]),
         Workflow("docs", "Documentation health assistant", True, ["text"]),
