@@ -164,19 +164,53 @@ wintersolve review .
 
 ## Installation
 
-See [docs/INSTALLATION.md](docs/INSTALLATION.md) for setup options.
+### For Users (recommended)
 
-Install from GitHub after the repository is pushed:
+Install the released package from PyPI:
 
-```powershell
-python -m pip install git+https://github.com/harshitkrhere/WinterSolve.git
+```bash
+pip install wintersolve
 ```
 
-Then run WinterSolve inside any project:
+Or use `pipx` for an isolated, globally available command:
 
-```powershell
+```bash
+pipx install wintersolve
+```
+
+Then run it from any project:
+
+```bash
 cd my-app
 wintersolve brain .
+```
+
+### For Contributors (development setup)
+
+Clone the repository and install in editable mode with dev dependencies:
+
+```bash
+git clone https://github.com/harshitkrhere/WinterSolve.git
+cd WinterSolve
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -e .[dev]
+```
+
+This installs the package with test, lint, and type-check dependencies. The `wintersolve` command works inside the virtual environment.
+
+### Run Without Installing (quick test)
+
+From the project folder:
+
+```bash
+$env:PYTHONPATH="src"; python -m wintersolve scan .
+```
+
+Or use the local PowerShell helper:
+
+```powershell
+.\scripts\wintersolve.ps1 scan .
 ```
 
 ## Usage
@@ -188,34 +222,6 @@ See [docs/GITHUB_LAUNCH.md](docs/GITHUB_LAUNCH.md) for GitHub install, app/websi
 ## Development Setup
 
 WinterSolve requires `typer>=0.12` and `rich>=13.0` at runtime.
-
-### Install the Clean `wintersolve` Command
-
-On Windows PowerShell, run this once from the project folder:
-
-```powershell
-.\scripts\install-wintersolve-command.ps1
-```
-
-Open a new PowerShell window, then use the classic command style:
-
-```powershell
-wintersolve brain .
-```
-
-### Run Without Installing
-
-From the project folder, run:
-
-```powershell
-$env:PYTHONPATH="src"; python -m wintersolve scan .
-```
-
-Or use the local PowerShell helper:
-
-```powershell
-.\scripts\wintersolve.ps1 scan .
-```
 
 ### Install the `wintersolve` Command
 
