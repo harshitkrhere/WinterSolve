@@ -14,6 +14,10 @@
   <img alt="mypy strict" src="https://img.shields.io/badge/mypy-strict-blue.svg">
 </p>
 
+<p align="center">
+  <img src="docs/assets/brain-report.svg" alt="Real output of 'wintersolve brain .' run on the WinterSolve repository itself" width="860">
+</p>
+
 You open a repository you have never seen. What is it, how do you run it, where
 are the tests, is anything risky, what should you look at first?
 
