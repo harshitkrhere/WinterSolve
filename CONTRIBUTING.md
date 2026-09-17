@@ -1,95 +1,93 @@
 # Contributing to WinterSolve
 
-Thank you for considering a contribution to WinterSolve.
+Thanks for looking. WinterSolve is small enough to read in an afternoon, and
+most valuable contributions are small too: a new stack marker, a better error
+rule, a false positive fixed, a doc that was wrong.
 
-WinterSolve is early, so thoughtful ideas, clear docs, useful workflows, and small focused improvements are all valuable.
+## Set up in two minutes
 
-## Contribution Areas
+```bash
+git clone https://github.com/harshitkrhere/WinterSolve.git
+cd WinterSolve
+python -m venv .venv
+source .venv/bin/activate        # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+pre-commit install               # optional, runs the same checks as CI on commit
+```
 
-You can contribute by:
+Check that everything works:
 
-- Proposing developer workflows
-- Improving documentation
-- Creating prompt templates
-- Building CLI commands
-- Adding provider integrations
-- Writing tests
-- Creating example reports
-- Reviewing project architecture
+```bash
+wintersolve brain .
+pytest
+```
 
-## What Makes a Good WinterSolve Contribution
+## The quality gate
 
-A good contribution should:
+CI runs exactly this; run it before opening a pull request:
 
-- Solve a real developer problem
-- Be easy to understand
-- Have clear inputs and outputs
-- Respect user privacy
-- Avoid unnecessary complexity
-- Include examples or tests when useful
+```bash
+ruff check .
+ruff format --check .
+mypy
+pytest
+```
 
-## Suggested Workflow
+`ruff format .` fixes formatting; `ruff check --fix .` fixes the safe lint issues.
 
-1. Open an issue describing the problem.
-2. Discuss the proposed workflow or fix.
-3. Keep the change focused.
-4. Add documentation for user-facing behavior.
-5. Submit a pull request with a clear summary.
+## Where things live
 
-## Module Contribution Checklist
+| You want to... | Look in |
+| --- | --- |
+| Detect a new framework, language, or package manager | `modules/scanner.py` (`FRAMEWORK_MARKERS`, `project.py` for extensions) |
+| Infer a new command | `modules/command_detector.py` |
+| Recognise a new error signature | `modules/debugger.py` (`PATTERNS`) |
+| Add or tune a security rule | `modules/security.py` (and `docs/SECURITY_MODEL.md`) |
+| Change how a report reads | `report.py`; wording rules in `modules/recommendations.py` |
+| Add a command | `cli.py`, then register it in `workflows/registry.py` |
 
-Before adding a new module, answer:
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full map and
+[BEGINNER.md](BEGINNER.md) for a guided tour with starter tasks.
 
-- What developer problem does this solve?
-- Who is the target user?
-- What input does the module need?
-- What output does it produce?
-- How can the output be verified?
-- Can it work without exposing private code unnecessarily?
+## Good first contributions
 
-## Technical Guidelines
+- A framework or tool marker that WinterSolve misses on a repository you know.
+- A command that `brain` should have found (attach the manifest file).
+- An error message the debugger does not recognise (attach the text).
+- A false positive from the security scan (attach the line, redacted if needed).
+- A README section synonym the docs assistant should accept.
 
-- Put workflow logic in `src/wintersolve/modules/`.
-- Return structured data from modules instead of printing directly.
-- Put command-line behavior in `src/wintersolve/cli.py`.
-- Put output formatting in `src/wintersolve/report.py`.
-- Keep every public command under the clean `wintersolve <workflow>` prefix.
-- Add tests in `tests/`.
-- Keep offline behavior useful before adding AI provider behavior.
-- Use the workflow registry when adding a new public workflow.
-- Redact secret-like values before any future provider or export path can expose them.
+Each of these is a few lines of code plus a test, and each makes the tool
+better for everyone.
 
-## Local Development
+## Ground rules for code
 
-To set up your environment for local development:
+- **Offline.** No network calls in the core. Ever.
+- **Structured.** Analyzers return frozen dataclasses and never print.
+- **Honest.** Heuristic output says it is heuristic; severity is earned.
+- **Redacted.** Anything secret-like is redacted before it is stored in a result.
+- **Tested.** Use `tmp_path` fixtures from `tests/conftest.py`; never scan the
+  WinterSolve repository itself from a test.
+- **Readable.** Match the surrounding style: short functions, descriptive names,
+  a docstring that says *why* when the *what* is not obvious.
 
-1. Clone the repository and navigate into the root directory.
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-3. Install the package in editable mode with development dependencies:
-   ```bash
-   pip install -e .[dev]
-   ```
-   *Note: If you have `uv` installed, you can speed up this process using:*
-   ```bash
-   uv pip install -e .[dev]
-   ```
+## Pull requests
 
-To run tests and code quality tools locally:
+1. Open an issue first for anything bigger than a small fix, so the design can
+   be discussed before the code exists.
+2. Keep the change focused; one topic per pull request.
+3. Add a line under `Unreleased` in `CHANGELOG.md`.
+4. Fill in the pull request template. Mention anything you checked by hand.
 
-- **Run tests**:
-  ```bash
-  pytest
-  ```
-- **Run linter (Ruff)**:
-  ```bash
-  ruff check .
-  ```
-- **Run type checker (Mypy)**:
-  ```bash
-  mypy src
-  ```
+Commit messages follow the `type: summary` style already in the history
+(`feat:`, `fix:`, `docs:`, `test:`, `chore:`).
 
+## Reporting bugs and ideas
+
+Use the issue templates. For security problems, follow
+[SECURITY.md](SECURITY.md) instead of opening a public issue.
+
+## Code of conduct
+
+Be kind, assume good intent, and make space for beginners. See
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

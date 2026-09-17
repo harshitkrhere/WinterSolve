@@ -1,20 +1,19 @@
 ## Summary
 
-Describe what changed and why.
+What changed and why. Link the issue if there is one.
 
 ## Verification
 
-List the checks you ran.
-
 ```text
-python -m unittest discover -s tests
+ruff check . && ruff format --check . && mypy && pytest
 ```
+
+Anything you checked by hand (for example, the report on a real repository).
 
 ## Checklist
 
-- [ ] The change solves a clear developer problem.
-- [ ] User-facing behavior is documented.
-- [ ] Tests were added or updated when useful.
-- [ ] The change avoids hidden network calls.
-- [ ] Sensitive data is not logged or committed.
-
+- [ ] Solves a clear developer problem or fixes a real bug.
+- [ ] Tests added or updated (temp-directory fixtures, no network).
+- [ ] Docs updated if user-facing behaviour changed (README, docs/COMMANDS.md).
+- [ ] CHANGELOG.md has an entry under "Unreleased".
+- [ ] No hidden network calls; secret-like values stay redacted.

@@ -1,27 +1,47 @@
-# WinterSolve Security Model
+# Security Model
 
-WinterSolve is designed to run inside developer repositories, including private and sensitive projects.
+WinterSolve is built to be run inside private repositories, so its own
+behaviour has to be predictable.
 
-## Defaults
+## What WinterSolve does
 
-- WinterSolve runs offline by default.
-- No AI provider is called unless a future user explicitly configures one.
-- Reports redact common secret-like values.
-- File access should remain scoped to the target project.
+- Reads files under the directory you point it at, skipping version-control
+  internals, caches, virtual environments, and dependency folders.
+- Runs `git status --short` for `review`, and optionally `bandit` for `brain`
+  when Bandit is installed and the project contains Python files.
+- Writes a report to stdout or to the file you name with `--output`.
 
-## Current Security Features
+## What WinterSolve does not do
 
-- Secret pattern detection for common tokens and key assignments
-- Redacted evidence in reports
-- Safe project path resolution for file explanation
-- Security and privacy section in Repo Brain reports
+- No network calls. There is no telemetry, no update check, no upload.
+- No writes inside your project unless you pass `--output` with a path there.
+- No reading outside the project root for `explain` (`--project` is a fence).
+- No AI provider calls from any command. The provider classes exist as an
+  optional extension point and are never invoked by the CLI.
 
-## Future Provider Rules
+## Redaction
 
-Before any provider receives project content:
+Every evidence line in a security finding passes through `redact_secrets`
+before it is stored, so reports are safe to paste into issues. Well-known
+token formats become `<redacted-secret>`; `name = value` assignments become
+`name=<redacted>`.
 
-- Secret redaction must run.
-- The provider must be explicitly configured.
-- The report should indicate that AI enhancement was used.
-- Users should be able to choose local or remote providers.
+## How the security scan works
 
+| Layer | Source | Severity | Applied to |
+| --- | --- | --- | --- |
+| Known token formats (AWS, GitHub, Stripe, Slack, OpenAI, Anthropic, Google, SendGrid, PEM keys) | regex | `high` | every text file, including docs and `.env*` |
+| Hardcoded secret-like assignments (`DB_PASSWORD = "..."`) | regex + guard | `medium` | every text file |
+| Risky code patterns (`eval`/`exec`, `shell=True`, `pickle`/`yaml.load`, SQL built from request data) | regex on code with strings and comments blanked | `medium` | source files only |
+| Bandit | subprocess, medium severity and above | Bandit's own | Python files, dependency folders excluded |
+
+The guard for secret-like assignments rejects placeholders (`changeme`,
+`<your-key>`, `${VAR}`) and code expressions (`self.config.api_key`,
+`os.getenv(...)`), and requires the value to mix letters and digits.
+
+Findings are leads, not verdicts, and the report says so. Confirm each one
+in context before acting on it.
+
+## Reporting a vulnerability in WinterSolve itself
+
+See [SECURITY.md](../SECURITY.md).

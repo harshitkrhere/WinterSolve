@@ -1,174 +1,124 @@
-# WinterSolve Contributor Learning Path
+# Contributor Learning Path
 
-> **Start here if you are new to the project.** This guide takes you from "never heard of WinterSolve" to "confident contributor" in a structured sequence.
+> Start here if you are new. This takes you from "never heard of WinterSolve"
+> to a merged pull request in a structured sequence. Skip steps you already know.
 
----
-
-## Prerequisites (1–2 days)
+## Prerequisites (an hour, or a couple of days if new to all of it)
 
 | Topic | Resource | Done |
-|-------|----------|------|
+| --- | --- | --- |
 | Python 3.10+ basics | <https://docs.python.org/3/tutorial> | ☐ |
-| Git & GitHub flow | <https://git-scm.com/book> | ☐ |
-| Virtual envs / `pip` / `pipx` | <https://packaging.python.org> | ☐ |
-| CLI comfort | Run `wintersolve --help` locally | ☐ |
+| Git and the GitHub pull request flow | <https://git-scm.com/book> | ☐ |
+| Virtual environments and `pip` | <https://packaging.python.org> | ☐ |
+| A terminal you are comfortable in | Run `wintersolve --help` | ☐ |
 
----
+## Phase 1: Orientation (30 minutes)
 
-## Phase 1: Orientation (30 min)
+Read in this order:
 
-Read **in this order**:
+1. [README.md](README.md): what the tool does, with real output.
+2. [docs/COMMANDS.md](docs/COMMANDS.md): every command, flag, and exit code.
+3. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the layers fit together.
+4. [CONTRIBUTING.md](CONTRIBUTING.md): the rules and the quality gate.
 
-1. `README.md` — what the tool does, quick commands
-2. `docs/COMMANDS.md` — every CLI flag & example
-3. `docs/ARCHITECTURE.md` — high-level layers (CLI → Modules → Reports → Providers)
-4. `CONTRIBUTING.md` — contribution rules, module checklist
-5. `CHANGELOG.md` — recent changes, versioning style
-
----
-
-## Phase 2: Run & Explore (1 hour)
+## Phase 2: Run it (30 minutes)
 
 ```bash
-# 1. Clone & install
 git clone https://github.com/harshitkrhere/WinterSolve.git
 cd WinterSolve
-python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e .[dev]
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
 
-# 2. Smoke test every command
 wintersolve --version
-wintersolve scan .
-wintersolve brain . --format markdown
+wintersolve brain .
+wintersolve brain . --format json | head -40
+wintersolve scan . --format markdown
 wintersolve explain src/wintersolve/cli.py
-wintersolve debug --text "ModuleNotFoundError: foo"
+wintersolve debug --text "ModuleNotFoundError: No module named 'foo'"
 wintersolve docs . --draft-readme
 wintersolve review .
 wintersolve workflows
 ```
 
-**Goal**: See every command produce output; note anything confusing.
+Then run it on a repository you know well. Note every sentence that is wrong,
+missing, or awkward: that list is your first contributions.
 
----
+## Phase 3: Follow one command through the code (1 to 2 hours)
 
-## Phase 3: Codebase Tour (2–3 hours)
+Trace `wintersolve scan .`:
 
-Follow the data flow for **one command** (e.g., `scan`):
+| File | Role |
+| --- | --- |
+| `src/wintersolve/cli.py` | `scan()` collects the arguments and calls `_run` / `_emit`. |
+| `src/wintersolve/modules/scanner.py` | `scan_project()` builds a `ScanResult`. |
+| `src/wintersolve/project.py` | `walk_project()` lists files once, pruning `node_modules` and friends. |
+| `src/wintersolve/report.py` | `render_scan_report()` turns the result into text, Markdown, or JSON. |
+| `tests/test_scanner.py`, `tests/test_cli.py` | How the behaviour is pinned down. |
 
-| File | Role | Read? |
-|------|------|-------|
-| `src/wintersolve/cli.py` | Typer app, argument parsing, dispatch | ☐ |
-| `src/wintersolve/modules/scanner.py` | Core logic: file iteration, language detection, risk rules | ☐ |
-| `src/wintersolve/project.py` | File iteration, ignore rules, language map | ☐ |
-| `src/wintersolve/report.py` | Renderers: text / markdown / JSON | ☐ |
-| `src/wintersolve/models.py` | Dataclasses (ScanResult, BrainReport, etc.) | ☐ |
-| `tests/test_scanner.py` | Unit tests for scan logic | ☐ |
-| `tests/test_cli.py` | CLI integration tests (CliRunner) | ☐ |
+Exercise: add a temporary `print()` in `scan_project`, run `wintersolve scan .`,
+see it, then remove it.
 
-**Exercise**: Add a `print("DEBUG")` in `scan_project`, re-run `wintersolve scan .`, verify you see it.
-
----
-
-## Phase 4: Test & Quality Loop (30 min)
+## Phase 4: The quality loop (15 minutes)
 
 ```bash
-# Run full CI locally
 ruff check .
 ruff format --check .
-mypy src/wintersolve
-pytest -v
+mypy
+pytest
 ```
 
-**Goal**: Green across the board. If red, read the error, fix, re-run.
+All four must be green. If one is red, read the message, fix, and re-run. This
+is exactly what CI runs.
 
----
+## Phase 5: Your first pull request
 
-## Phase 5: First Contribution (Pick One)
+Pick one:
 
-| Difficulty | Idea | Files to Touch |
-|------------|------|----------------|
-| 🟢 Easy | Add a missing framework marker (e.g., `deno.json` → "Deno") | `scanner.py:FRAMEWORK_MARKERS` + test |
-| 🟢 Easy | Add a new risk rule (e.g., "no `requirements.txt`") | `scanner.py:_build_risks` + test |
-| 🟡 Medium | New CLI subcommand: `wintersolve metrics` (LOC, complexity) | `cli.py`, new `modules/metrics.py`, `report.py`, registry, tests |
-| 🟡 Medium | Extend `providers/examples.py` with local Ollama provider | `providers/examples.py`, `providers/base.py`, test |
-| 🔴 Hard | Incremental scan cache (mtime + hash) | `scanner.py`, `project.py`, new cache file |
+| Difficulty | Idea | Where |
+| --- | --- | --- |
+| Easy | Add a stack marker you use (for example, `bunfig.toml` or `Justfile`). | `modules/scanner.py` `FRAMEWORK_MARKERS` + `tests/test_scanner.py` |
+| Easy | Add an error signature the debugger misses. | `modules/debugger.py` `PATTERNS` + `tests/test_debugger.py` |
+| Easy | Add a README heading synonym (for example, "Setup" for Installation). | `modules/docs_assistant.py` + `tests/test_docs_assistant.py` |
+| Medium | Detect commands from a `Justfile` or `Taskfile.yml`. | `modules/command_detector.py` + tests |
+| Medium | Give the explainer TypeScript/JavaScript symbol detection. | `modules/explainer.py` + tests |
+| Medium | Add an HTML renderer for the Repo Brain report. | `report.py`, `cli.py` (`ReportFormat`), registry, tests |
+| Hard | Monorepo awareness: detect stacks in `apps/*` and `packages/*`. | `modules/scanner.py`, `modules/command_detector.py`, tests |
 
-**Workflow**:
+Workflow:
 
-1. Open issue describing the change.
-2. Branch: `git checkout -b feat/your-idea`.
-3. Implement + tests + docs.
-4. `ruff check . && ruff format --check . && mypy src/wintersolve && pytest`
-5. PR with clear description + `CHANGELOG.md` entry.
+1. Open an issue describing the change (a sentence or two is fine).
+2. `git checkout -b feat/your-idea`
+3. Implement, with a test that fails before and passes after.
+4. Run the quality loop.
+5. Add a line under `Unreleased` in `CHANGELOG.md`.
+6. Open the pull request and fill in the template.
 
----
+## Phase 6: Going deeper
 
-## Phase 6: Deepen (Ongoing)
+| Area | How |
+| --- | --- |
+| Security rules | Read `modules/security.py` top to bottom; write a test that produces a false positive, then fix it. |
+| Report wording | Read `modules/recommendations.py`; make a sentence more specific without making it less true. |
+| CI | Read `.github/workflows/ci.yml`; every job is there for a reason you should be able to explain. |
+| Architecture | Propose a change in a GitHub issue before writing it; the discussion is half the work. |
 
-| Area | How to Master |
-|------|---------------|
-| **Module internals** | Pick one module (debugger, docs_assistant, security); read every line; write a new test that breaks, then fix. |
-| **Report rendering** | Add a new output format (e.g., HTML) to `report.py`. |
-| **Provider system** | Implement a real local LLM provider (Ollama) end-to-end. |
-| **CI/CD** | Add a new workflow (e.g., performance benchmark on schedule). |
-| **Architecture** | Propose a plugin registry redesign via GitHub Discussion → RFC → PR. |
+## Package map
 
----
-
-## Phase 7: Maintainer Habits (Monthly)
-
-- Triage new issues / label good-first-issues.
-- Review PRs: run CI locally, ask for tests/docs.
-- Cut a release: `CHANGELOG.md` → tag → verify PyPI.
-- Update roadmap / docs with done items from user feedback.
-
----
-
-## Key Files Cheat Sheet
-
-```
+```text
 src/wintersolve/
-├── cli.py              # Entry point, all commands
-├── __init__.py         # Version, logging exports
-├── models.py           # All dataclasses (typed)
-├── logging_config.py   # Quiet-by-default logging
-├── project.py          # FS utilities (ignore, iterate, read)
-├── report.py           # All renderers (text/md/json)
-├── modules/
-│   ├── scanner.py      # Repo scan logic
-│   ├── brain.py        # Composes full report
-│   ├── security.py     # Secrets + Bandit
-│   ├── debugger.py     # Error pattern matching
-│   ├── docs_assistant.py
-│   ├── explainer.py    # AST + generic symbols
-│   ├── reviewer.py     # Git diff checklist
-│   ├── command_detector.py
-│   ├── recommendations.py
-│   └── architecture.py
-├── providers/
-│   ├── base.py         # Protocol + config dataclasses
-│   └── examples.py     # OpenAI / Anthropic examples
-└── workflows/registry.py  # Command metadata
+├── cli.py              commands, exit codes, output
+├── report.py           text / markdown / json renderers
+├── models.py           shared result dataclasses
+├── project.py          filesystem walk, text/code detection, path safety
+├── logging_config.py   quiet-by-default logging
+├── modules/            one analyzer per file (scanner, security, debugger, ...)
+├── providers/          optional AI provider interface and examples
+└── workflows/          registry of public commands
+tests/                  one test module per source module, temp-dir fixtures
+docs/                   user and contributor documentation
+examples/               sample reports and a drop-in GitHub Action
 ```
 
----
+## Golden rule
 
-## First Week Checklist
-
-- [ ] Repo builds, tests pass locally
-- [ ] Ran every CLI command once
-- [ ] Read 5 core source files end-to-end
-- [ ] Opened one "good first issue" PR (even typo fix)
-- [ ] Joined GitHub Discussions / Discord (if exists)
-
----
-
-## Golden Rule
-
-> **Read → Run → Break → Fix → Test → PR**. Repeat.
-
-That's the fastest path from beginner to expert contributor.
-
----
-
-*Welcome to WinterSolve — happy contributing!*
+Read, run, break, fix, test, pull request. Repeat. Welcome aboard.

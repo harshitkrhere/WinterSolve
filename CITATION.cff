@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If WinterSolve helped your work, please cite it."
+title: "WinterSolve: offline-first repository intelligence for developers"
+type: software
+authors:
+  - name: "WinterSolve Contributors"
+repository-code: "https://github.com/harshitkrhere/WinterSolve"
+license: MIT
+version: 0.3.0
+date-released: 2026-09-17
+keywords:
+  - developer-tools
+  - static-analysis
+  - codebase-analysis
+  - security-scanning

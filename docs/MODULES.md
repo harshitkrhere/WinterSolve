@@ -1,143 +1,31 @@
-# WinterSolve Module Ideas
+# Modules
 
-WinterSolve modules should be small, focused workflows. Each module should accept project context, run a clear task, and produce practical output.
+Each module solves one developer problem, takes explicit inputs, and returns a
+frozen dataclass. This page is the "what does each one actually do today" list;
+see [ARCHITECTURE.md](ARCHITECTURE.md) for how they fit together.
 
-## Module Principles
+| Module | Command | What it does today |
+| --- | --- | --- |
+| `scanner` | `scan` (and `brain`) | Languages by extension, stack markers at the repo root, important and missing hygiene files, likely source and test paths, basic risks. Never opens source files. |
+| `brain` | `brain` | Runs every analyzer below and composes the Repo Brain report. |
+| `security` | `brain` | Known token formats (high), guarded secret-like assignments (medium), risky code patterns on source files with strings and comments blanked (medium), optional Bandit (medium and above). Redacts evidence. |
+| `command_detector` | `brain` | `package.json` scripts with the right package manager (npm / pnpm / yarn / bun), pip / uv / poetry / pipenv, Go, Cargo, Maven, Gradle, Bundler, Composer, Mix, Flutter, Docker, Makefile targets, and commands quoted in README code blocks. |
+| `architecture` | `brain` | Groups files by top-level directory, assigns a conventional purpose, lists notable files shallow-first. |
+| `docs_assistant` | `docs` (and `brain`) | README section detection from headings with synonyms, missing hygiene files, README draft with detected stack. |
+| `explainer` | `explain` | Python: `ast` symbols, imports, docstring, `__main__` guard, syntax errors. Other text: headings, declarations, imports. |
+| `debugger` | `debug` | Error signature rules (Python, Node.js, Go, Rust, JVM, network, ports, TLS, auth, dependency conflicts), stack-frame extraction, next steps. |
+| `reviewer` | `review` | `git status` file names to review risks and a pre-PR checklist. |
+| `recommendations` | `brain` | Turns scan and security results into risks, recommendations, and next actions; wording stays humble. |
 
-- One module should solve one recognizable developer problem.
-- Inputs and outputs should be explicit.
-- Generated content should be editable by humans.
-- Modules should avoid hidden magic.
-- Modules should be testable without requiring a paid AI provider.
+## Ideas that are not built yet
 
-## Initial Modules
+Listed so nobody mistakes them for features:
 
-### Repo Brain
+- Test assistant: suggest missing tests for changed code.
+- Dependency analyzer: outdated or vulnerable dependencies (offline where possible).
+- Import graph and dead-code hints for Python and TypeScript.
+- Changelog and release-note helpers driven by Git history.
+- Optional AI enhancement of any report from redacted context.
 
-Purpose: compose WinterSolve analyzers into a complete project intelligence report.
-
-Outputs:
-
-- Project identity
-- Language and stack summary
-- Architecture map
-- Source, test, and docs layout
-- Detected commands
-- Security and privacy summary
-- Risks, recommendations, and next actions
-
-Status: initial implementation exists in `wintersolve brain`.
-
-### Project Scanner
-
-Purpose: understand the structure of a repository.
-
-Outputs:
-
-- Project type
-- Main languages
-- Important files
-- Framework guesses
-- Test commands
-- Build commands
-- Documentation gaps
-
-Status: initial implementation exists in `wintersolve scan`.
-
-### Command Detector
-
-Purpose: infer useful developer commands from project files.
-
-Outputs:
-
-- Install commands
-- Test commands
-- Build commands
-- Run commands
-- Source and confidence for each command
-
-Status: initial implementation is used by `wintersolve brain`.
-
-### Security Analyzer
-
-Purpose: detect secret-like values and communicate privacy posture.
-
-Outputs:
-
-- Security status
-- Files checked
-- Redacted findings
-- Offline-by-default privacy notes
-
-Status: initial implementation is used by `wintersolve brain`.
-
-### Architecture Mapper
-
-Purpose: summarize important project areas from repository structure.
-
-Outputs:
-
-- Top-level sections
-- Likely purpose
-- Notable files
-
-Status: initial implementation is used by `wintersolve brain`.
-
-### Code Explainer
-
-Purpose: explain selected files, folders, or symbols.
-
-Outputs:
-
-- Plain-English explanation
-- Dependencies
-- Key responsibilities
-- Risky or complex areas
-- Suggested follow-up files
-
-### Debug Helper
-
-Purpose: analyze errors, logs, and stack traces.
-
-Outputs:
-
-- Likely cause
-- Relevant files
-- Suggested fixes
-- Verification steps
-- Prevention tips
-
-### Docs Assistant
-
-Purpose: create or improve developer documentation.
-
-Outputs:
-
-- README sections
-- Setup instructions
-- API docs
-- Contribution notes
-- Architecture notes
-
-### Review Assistant
-
-Purpose: help review local changes or pull requests.
-
-Outputs:
-
-- Change summary
-- Risk areas
-- Missing tests
-- Review checklist
-- Suggested comments
-
-### Test Assistant
-
-Purpose: recommend or draft tests for changed code.
-
-Outputs:
-
-- Test gaps
-- Test cases
-- Edge cases
-- Suggested test files
+If you want to build one, open an issue first so the design can be discussed
+before the code exists.

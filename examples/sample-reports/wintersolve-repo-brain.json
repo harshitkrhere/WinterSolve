@@ -1,0 +1,194 @@
+{
+  "architecture": [
+    {
+      "name": ".github",
+      "notable_files": [
+        ".github/CODEOWNERS",
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        ".github/dependabot.yml",
+        ".github/ISSUE_TEMPLATE/bug_report.md",
+        ".github/ISSUE_TEMPLATE/config.yml",
+        ".github/ISSUE_TEMPLATE/feature_request.md",
+        ".github/workflows/ci.yml",
+        ".github/workflows/codeql.yml"
+      ],
+      "path": ".github",
+      "purpose": "GitHub community and automation files"
+    },
+    {
+      "name": "docs",
+      "notable_files": [
+        "docs/ARCHITECTURE.md",
+        "docs/COMMANDS.md",
+        "docs/INSTALLATION.md",
+        "docs/INTEGRATIONS.md",
+        "docs/MODULES.md",
+        "docs/PLUGIN_SYSTEM.md",
+        "docs/QUALITY_MODEL.md",
+        "docs/README.md"
+      ],
+      "path": "docs",
+      "purpose": "Project documentation"
+    },
+    {
+      "name": "examples",
+      "notable_files": [
+        "examples/github-action.yml",
+        "examples/sample-reports/wintersolve-repo-brain.md"
+      ],
+      "path": "examples",
+      "purpose": "Example inputs, outputs, or sample projects"
+    },
+    {
+      "name": "scripts",
+      "notable_files": [
+        "scripts/install-wintersolve-command.ps1",
+        "scripts/wintersolve.ps1"
+      ],
+      "path": "scripts",
+      "purpose": "Developer and automation scripts"
+    },
+    {
+      "name": "src",
+      "notable_files": [
+        "src/wintersolve/__init__.py",
+        "src/wintersolve/__main__.py",
+        "src/wintersolve/cli.py",
+        "src/wintersolve/logging_config.py",
+        "src/wintersolve/models.py",
+        "src/wintersolve/project.py",
+        "src/wintersolve/py.typed",
+        "src/wintersolve/report.py"
+      ],
+      "path": "src",
+      "purpose": "Application or library source code"
+    },
+    {
+      "name": "templates",
+      "notable_files": [
+        "templates/prompts/codebase-summary.md",
+        "templates/prompts/debug-helper.md",
+        "templates/prompts/pr-review.md"
+      ],
+      "path": "templates",
+      "purpose": "Reusable templates and prompts"
+    },
+    {
+      "name": "tests",
+      "notable_files": [
+        "tests/__init__.py",
+        "tests/conftest.py",
+        "tests/test_architecture.py",
+        "tests/test_brain.py",
+        "tests/test_cli.py",
+        "tests/test_command_detector.py",
+        "tests/test_debugger.py",
+        "tests/test_docs_assistant.py"
+      ],
+      "path": "tests",
+      "purpose": "Automated tests"
+    }
+  ],
+  "commands": [
+    {
+      "command": "python -m pip install -e .",
+      "confidence": "medium",
+      "name": "install editable",
+      "source": "pyproject.toml"
+    },
+    {
+      "command": "python -m pytest",
+      "confidence": "medium",
+      "name": "test",
+      "source": "pyproject.toml"
+    },
+    {
+      "command": "pipx install wintersolve",
+      "confidence": "medium",
+      "name": "pipx",
+      "source": "README.md"
+    },
+    {
+      "command": "pytest 2>&1 | wintersolve debug",
+      "confidence": "medium",
+      "name": "pytest",
+      "source": "README.md"
+    },
+    {
+      "command": "python -m pip install -e \".[dev]\"",
+      "confidence": "medium",
+      "name": "python",
+      "source": "README.md"
+    }
+  ],
+  "docs_health": [
+    "README contains the expected core sections.",
+    "Core open-source hygiene files are present."
+  ],
+  "identity": {
+    "exists": true,
+    "name": "WinterSolve",
+    "offline_mode": true,
+    "path": "/home/dev/WinterSolve"
+  },
+  "languages": [
+    {
+      "files": 38,
+      "name": "Python"
+    },
+    {
+      "files": 27,
+      "name": "Markdown"
+    },
+    {
+      "files": 2,
+      "name": "PowerShell"
+    }
+  ],
+  "next_actions": [
+    "Run the detected test command before making changes.",
+    "Use `wintersolve explain <file>` on the most important source files.",
+    "Use the architecture map as the first contributor onboarding guide."
+  ],
+  "recommendations": [
+    "Nothing urgent. Keep docs, tests, and project metadata current as the project grows."
+  ],
+  "risks": [],
+  "schema_version": 1,
+  "security": {
+    "files_checked": 82,
+    "findings": [],
+    "notes": [
+      "Secret-like values are redacted before they appear in any report.",
+      "Bandit ran on Python files (medium and high severity): 0 issue(s)."
+    ],
+    "offline_by_default": true,
+    "status": "clear"
+  },
+  "source_paths": [
+    "src",
+    "src/wintersolve",
+    "src/wintersolve/modules",
+    "src/wintersolve/providers",
+    "src/wintersolve/workflows"
+  ],
+  "stack": [
+    "GitHub Actions",
+    "Python package",
+    "pre-commit"
+  ],
+  "test_paths": [
+    "tests",
+    "tests/__init__.py",
+    "tests/conftest.py",
+    "tests/test_architecture.py",
+    "tests/test_brain.py",
+    "tests/test_cli.py",
+    "tests/test_command_detector.py",
+    "tests/test_debugger.py",
+    "tests/test_docs_assistant.py",
+    "tests/test_explainer.py",
+    "tests/test_project.py",
+    "tests/test_providers.py"
+  ]
+}

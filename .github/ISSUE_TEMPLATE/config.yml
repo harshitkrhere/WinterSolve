@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/harshitkrhere/WinterSolve/security/advisories/new
+    about: Report security issues privately instead of opening a public issue.
+  - name: Question or idea
+    url: https://github.com/harshitkrhere/WinterSolve/discussions
+    about: Ask how something works or float a workflow idea before writing code.

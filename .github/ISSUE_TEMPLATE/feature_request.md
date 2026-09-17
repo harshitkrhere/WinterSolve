@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest a new workflow, command, or improvement
+about: Suggest a new workflow, detector, output format, or improvement
 title: "[Feature]: "
 labels: enhancement
 assignees: ""
@@ -8,21 +8,21 @@ assignees: ""
 
 ## Problem
 
-What developer problem should WinterSolve help solve?
+What developer problem would this solve? Who hits it, and how often?
 
-## Proposed workflow
+## Proposed behaviour
 
-What command or module would solve it?
+What would WinterSolve do? A sketch of the command and output helps:
 
 ```text
 wintersolve ...
 ```
 
-## Output
+## Alternatives considered
 
-What should WinterSolve produce?
+Other ways to solve it, including "do nothing".
 
-## Why this fits WinterSolve
+## Fit
 
-Explain why this is useful for many developers.
-
+WinterSolve works offline by default and returns structured, editable output.
+Say briefly how the idea fits that (or why it should be an exception).

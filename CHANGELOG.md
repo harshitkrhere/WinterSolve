@@ -1,37 +1,96 @@
 # Changelog
 
-All notable changes to WinterSolve are documented in this file.
-
-This project follows the spirit of [Keep a Changelog](https://keepachangelog.com/) and uses semantic versioning once public releases begin.
+All notable changes to WinterSolve are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/) and the project uses
+[Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-17
+
+First public release candidate. Everything below compares to the 0.2.0 tree
+that was never published.
+
 ### Added
 
-- Modern Typer/Rich CLI entry point with `python -m wintersolve` support.
-- CI quality gates for Ruff, format checks, Mypy, tests, package builds, and Bandit scanning.
-- PyPI-oriented release workflow for tagged releases.
-- Optional AI provider extension examples for OpenAI and Anthropic.
-- Project logging configuration that stays quiet by default.
+- `scan --format json` and `scan --output`, so both scan and brain reports can
+  feed other tools. Brain JSON now carries a top-level `schema_version`.
+- `brain --no-bandit` to skip the optional Bandit pass on large repositories.
+- `debug` reads from stdin when piped (`pytest 2>&1 | wintersolve debug`).
+- Security findings carry a `category` (`secret`, `code-pattern`, `bandit`)
+  that integrations can branch on.
+- Stack detection for pnpm, Yarn, Bun, Deno, Nuxt, Astro, Remix, Tailwind,
+  uv, Poetry, Pipenv, Elixir, Flutter, CMake, Make, Docker Compose, Terraform,
+  GitHub Actions, GitLab CI, Jenkins, pre-commit, and more.
+- Command detection for uv, Poetry, Pipenv, requirements.txt, Go, Cargo,
+  Maven, Gradle, Bundler, Composer, Mix, Flutter, Docker, and Docker Compose;
+  `package.json` scripts now use the package manager implied by the lockfile.
+- Debugger rules for AttributeError, NameError, ImportError, recursion,
+  encoding, JSON, missing files, ports in use, timeouts, TLS, auth failures,
+  dependency conflicts, segfaults, out-of-memory, and database connections,
+  plus JVM detection.
+- `explain` reports the module docstring and `__main__` guard for Python files.
+- Windows and macOS runners in CI, Python 3.14 in the matrix, a clean-environment
+  wheel install check, and a Repo Brain report artifact on every CI run.
+- `CITATION.cff`, `.editorconfig`, `.gitattributes`, issue template contact
+  links, a documentation index, and an example GitHub Action.
 
 ### Changed
 
-- Packaging metadata now uses modern SPDX license syntax.
-- Test suite is pytest-compatible and runs under strict pytest configuration.
+- The repository walk visits the tree once and prunes ignored directories
+  (`node_modules`, `.venv`, build output, `*.egg-info`) instead of filtering
+  after the fact; large repositories scan in a fraction of the time.
+- The security scan is far quieter and more honest: Bandit only reports medium
+  and high severity, skips dependency folders, and is only invoked when
+  installed and when Python files exist; risky-pattern rules ignore prose files,
+  comments, and string literals; the "secret-like assignment" rule rejects
+  placeholders and code expressions and is rated medium, not high. The report
+  states exactly which layers ran.
+- Risks, recommendations, and next actions are driven by finding categories
+  rather than substring matching, and their wording no longer over-promises.
+- README section detection reads Markdown headings (with synonyms such as
+  "Getting Started") instead of searching the whole text.
+- README commands are only collected from fenced code blocks.
+- `--format` is validated (`text`, `markdown`, `json`); unknown values exit 2.
+- Reports are printed with terminal markup disabled, so paths like
+  `app/[id]/page.tsx` are shown literally.
+- Packaging: version is read from `wintersolve.__version__`, license uses the
+  SPDX expression form, runtime dependencies are just `typer` and `rich`.
+- Docs rewritten to describe what the tool does today; aspirational feature
+  lists moved to `docs/VISION.md` and `docs/MODULES.md`.
 
-### Security
+### Fixed
 
-- Security scanner keeps reports redacted by default.
-- Release and CI workflows include package validation.
+- A `typer.Exit` raised inside a command was caught by a broad `except` and
+  reported as `Error:` with exit code 1.
+- Syntax errors found by `explain` were computed but never shown.
+- The "unknown provider" error message was missing its f-string prefix.
+- `.env` files were not scanned for secrets because they have no extension.
+- The pre-commit config referenced a hook (`debug-logger`) that does not exist.
+- The OSSF Scorecard workflow failed to publish because of global write
+  permissions.
+
+### Removed
+
+- Unfinished, unwired scaffolding for async caching, pydantic settings, plugin
+  interfaces, and observability, together with the heavy dependencies they
+  would have required.
 
 ## [0.2.0] - 2026-06-28
 
+Internal milestone (never published).
+
 ### Added
 
-- Open-source readiness pass for packaging, CI, CLI reliability, provider extension points, and release automation.
+- Open-source readiness pass: packaging, CI, CLI reliability, provider
+  extension points, release automation, and community documents.
 
 ## [0.1.0]
 
 ### Added
 
-- Initial offline-first Repo Brain, scan, explain, debug, docs, review, and security workflows.
+- Initial offline-first Repo Brain, scan, explain, debug, docs, review, and
+  security workflows.
+
+[Unreleased]: https://github.com/harshitkrhere/WinterSolve/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/harshitkrhere/WinterSolve/releases/tag/v0.3.0

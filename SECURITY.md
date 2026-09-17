@@ -1,33 +1,45 @@
 # Security Policy
 
-WinterSolve is intended to work with developer projects, which may include sensitive source code, secrets, logs, and configuration files.
+WinterSolve runs inside developer repositories, which may contain secrets,
+private code, and sensitive logs. We take reports about its behaviour seriously.
 
-## Security Goals
+## Supported versions
 
-- Avoid exposing private code unnecessarily.
-- Make AI provider behavior explicit.
-- Support safer local workflows over time.
-- Encourage careful handling of logs, secrets, and credentials.
+| Version | Supported |
+| --- | --- |
+| Latest release on PyPI | Yes |
+| `main` branch | Yes (best effort) |
+| Older releases | No; please upgrade |
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-If you find a security issue, please report it privately to the maintainers instead of opening a public issue.
+Please do **not** open a public issue for security problems.
 
-Include:
+1. Preferred: use GitHub's private reporting at
+   <https://github.com/harshitkrhere/WinterSolve/security/advisories/new>.
+2. If that is unavailable, contact the maintainer through their GitHub profile
+   (<https://github.com/harshitkrhere>) and mention "WinterSolve security".
 
-- A clear description of the issue
-- Steps to reproduce
-- Potential impact
-- Suggested fix, if known
+Include what you found, how to reproduce it, and what impact you think it has.
+You will get an acknowledgement within a few days. Fixes are released as soon
+as they are ready, with credit to the reporter unless you prefer otherwise.
 
-## Sensitive Data Guidelines
+## What counts
 
-WinterSolve contributors should avoid committing:
+Examples of things we want to hear about:
 
-- API keys
-- Access tokens
-- Passwords
-- Private logs
-- Customer data
-- Proprietary code samples without permission
+- WinterSolve reading or writing outside the directory it was pointed at.
+- A secret that reaches a report unredacted.
+- Any network activity from the core commands.
+- Crashes or hangs caused by crafted repository contents.
 
+False positives and missed detections in the security scan are bugs, not
+vulnerabilities: please report them as regular issues (redact any real secret
+in the example).
+
+## Guidelines for contributors
+
+Never commit API keys, tokens, passwords, private logs, customer data, or
+proprietary code samples. Test fixtures that need "secret-like" strings should
+build them from fragments (see `tests/test_security.py`) so the repository's
+own scan stays clean.

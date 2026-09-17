@@ -1,28 +1,28 @@
-# WinterSolve Plugin System
+# Plugins (status: not yet)
 
-WinterSolve does not have external plugins yet, but the internal design prepares for them.
+WinterSolve has no plugin loader today, on purpose. The internal structure is
+already plugin-shaped, so a loader can be added when real third-party
+analyzers exist, without redesigning the core.
 
-## Current Foundation
+## What is already in place
 
-- Modules implement focused developer workflows.
-- Reports use structured data.
-- The workflow registry lists available workflows and output formats.
-- AI providers have a small interface that future integrations can implement.
+- Every analyzer is a module with one public function and a frozen result type.
+- The workflow registry (`workflows/registry.py`) is the single list of public
+  commands and their output formats.
+- The AI provider interface (`providers/base.py`) is a one-method protocol that
+  vendors and local models can implement in a few dozen lines.
+- Renderers are pure functions from result to string.
 
-## Future Plugin Goals
+## What a future plugin would need
 
-- Add new analyzers without changing the CLI core.
-- Add provider integrations without rewriting workflows.
-- Add report exporters for CI, dashboards, and documentation sites.
-- Let teams ship private workflows for their own stacks.
+- A stable result-type contract (frozen dataclasses with documented fields).
+- Explicit registration (no import-time magic, no scanning site-packages).
+- The same rules as built-in modules: offline unless documented, structured
+  output, tests, redaction before anything leaves the machine.
 
-## Module Expectations
+## How to propose one
 
-Every plugin or module should:
-
-- Work offline unless clearly documented otherwise.
-- Return structured data.
-- Avoid printing directly.
-- Include tests.
-- Redact sensitive data before sending anything to external services.
-
+Open an issue describing the developer problem, the inputs, and the output
+shape. If the analyzer is broadly useful it probably belongs in the core; if it
+is specific to one stack or company, it is the first candidate for the plugin
+surface.

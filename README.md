@@ -1,309 +1,211 @@
-# WinterSolve
+<h1 align="center">WinterSolve</h1>
 
-WinterSolve is an open-source Developer OS for coders who want to understand, improve, debug, document, and maintain software projects faster.
+<p align="center">
+  <strong>Understand any repository from the terminal. Offline, in seconds, no account.</strong>
+</p>
 
-It is built around **Repo Brain**, an offline-first project intelligence layer that turns a repository into architecture notes, risk signals, command guesses, security checks, documentation health, and next actions without requiring an AI account.
+<p align="center">
+  <a href="https://github.com/harshitkrhere/WinterSolve/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/harshitkrhere/WinterSolve/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/harshitkrhere/WinterSolve/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/harshitkrhere/WinterSolve/actions/workflows/codeql.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-green.svg"></a>
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue.svg">
+  <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
+  <img alt="mypy strict" src="https://img.shields.io/badge/mypy-strict-blue.svg">
+</p>
 
-## Overview
+You open a repository you have never seen. What is it, how do you run it, where
+are the tests, is anything risky, what should you look at first?
 
-WinterSolve is an offline-first command-line product that helps developers inspect repositories, understand files, analyze errors, improve documentation, prepare code reviews, and build a practical mental model of a project.
+`wintersolve brain .` answers all of that in one report: languages and stack,
+source and test layout, the commands you need, an architecture map, a security
+and privacy check, and a short list of risks and next actions. It reads files;
+it never phones home. Output is plain text you can paste into an issue,
+Markdown for a wiki, or JSON for your tooling.
 
-## Why WinterSolve Exists
-
-Developers do not only need a chatbot. They need reusable workflows that turn repeated engineering pain into reliable tools.
-
-WinterSolve focuses on developer problems that show up every day:
-
-- Understanding unfamiliar codebases
-- Debugging errors and stack traces
-- Generating useful documentation
-- Creating project templates
-- Reviewing code changes
-- Writing tests
-- Explaining APIs and architecture
-- Automating repetitive setup and maintenance work
-- Turning project knowledge into reusable AI workflows
-
-## What Makes WinterSolve Different
-
-WinterSolve is designed to stand out from typical AI coding projects in a few important ways:
-
-- **Workflow-first, not prompt-first**: every feature should solve a repeatable developer problem, not just provide a blank chat box.
-- **Open and extensible**: contributors can add tools, adapters, prompts, templates, and integrations as independent modules.
-- **Developer-owned AI**: the project should support multiple model providers and local options over time.
-- **Codebase-aware by design**: WinterSolve should work with repository structure, docs, tests, issues, and project conventions.
-- **Practical outputs**: generated results should become files, patches, reports, checklists, or commands that developers can actually use.
-- **Beginner-friendly but senior-useful**: new developers get guidance, while experienced developers get automation and repeatable workflows.
-- **Privacy-conscious path**: sensitive code should be handled carefully, with future support for local execution and configurable data sharing.
-
-## Core Toolkit Areas
-
-## Features
-
-- Repository health scanning
-- Repo Brain project intelligence reports
-- Offline file explanation
-- Error and stack trace analysis
-- Documentation improvement suggestions
-- Local change review checklists
-- Security and privacy checks
-- Stable JSON output for future integrations
-- Open module structure for future AI-powered workflows
-
-### 1. Code Understanding
-
-Tools that help developers understand a codebase quickly:
-
-- Project map generator
-- File and dependency explainer
-- Architecture summary
-- API route explorer
-- Onboarding guide generator
-
-### 2. Debugging Assistant
-
-Tools that help diagnose and fix errors:
-
-- Stack trace explainer
-- Error-to-fix suggestions
-- Log summarizer
-- Failing test analyzer
-- Dependency and environment checker
-
-### 3. Documentation Automation
-
-Tools that turn project knowledge into useful docs:
-
-- README generator
-- API documentation assistant
-- Changelog helper
-- Contribution guide generator
-- Architecture decision record templates
-
-### 4. Project Starters
-
-Reusable templates for common developer needs:
-
-- Full-stack app starter
-- API service starter
-- CLI tool starter
-- AI app starter
-- Open-source repository starter
-
-### 5. Code Quality Workflows
-
-AI-assisted workflows for safer changes:
-
-- Pull request summary
-- Code review checklist
-- Test suggestion generator
-- Refactor planning assistant
-- Security and dependency review helper
-
-### 6. Automation Modules
-
-Small tools that remove repetitive work:
-
-- Issue triage helper
-- Release note generator
-- Environment setup checklist
-- Config file validator
-- Repo health report
-
-## Working CLI
-
-WinterSolve includes a working offline-first CLI.
-
-Run a repository scan:
-
-```powershell
-wintersolve scan .
-```
-
-Build a full Repo Brain report:
-
-```powershell
-wintersolve brain . --format markdown
-```
-
-Save a JSON report for tooling:
-
-```powershell
-wintersolve brain . --format json --output wintersolve-report.json
-```
-
-Generate a Markdown report:
-
-```powershell
-wintersolve scan . --format markdown
-```
-
-Explain a source file:
-
-```powershell
-wintersolve explain src/wintersolve/cli.py
-```
-
-Analyze an error:
-
-```powershell
-wintersolve debug --text "ModuleNotFoundError: No module named demo"
-```
-
-Suggest documentation improvements:
-
-```powershell
-wintersolve docs . --draft-readme
-```
-
-Review local Git changes:
-
-```powershell
-wintersolve review .
-```
-
-## Installation
-
-### For Users (recommended)
-
-Install the released package from PyPI:
+## Try it
 
 ```bash
-pip install wintersolve
-```
-
-Or use `pipx` for an isolated, globally available command:
-
-```bash
-pipx install wintersolve
-```
-
-Then run it from any project:
-
-```bash
-cd my-app
+pipx install wintersolve        # or: python -m pip install wintersolve
+cd path/to/any/project
 wintersolve brain .
 ```
 
-### For Contributors (development setup)
+Not on PyPI yet, or want the latest commit? `pipx install git+https://github.com/harshitkrhere/WinterSolve.git`
 
-Clone the repository and install in editable mode with dev dependencies:
+## What you get
+
+Real output from running WinterSolve on its own repository (lightly trimmed;
+the [full report](examples/sample-reports/wintersolve-repo-brain.md) is in
+`examples/`):
+
+```text
+WinterSolve Repo Brain
+======================
+Project: WinterSolve
+Offline mode: yes
+
+Languages:
+  - Python: 38
+  - Markdown: 27
+  - PowerShell: 2
+Detected stack:
+  - GitHub Actions
+  - Python package
+  - pre-commit
+Source layout:
+  - src
+  - src/wintersolve
+  - src/wintersolve/modules
+  - src/wintersolve/providers
+  - src/wintersolve/workflows
+Documentation health:
+  - README contains the expected core sections.
+  - Core open-source hygiene files are present.
+Detected commands:
+  - install editable: `python -m pip install -e .` (pyproject.toml, medium)
+  - test: `python -m pytest` (pyproject.toml, medium)
+  - pipx: `pipx install wintersolve` (README.md, medium)
+Architecture map:
+  - docs: Project documentation; notable: docs/ARCHITECTURE.md, docs/COMMANDS.md, ...
+  - src: Application or library source code; notable: src/wintersolve/cli.py, ...
+  - tests: Automated tests; notable: tests/conftest.py, tests/test_cli.py, ...
+Security and privacy:
+  - Status: clear
+  - Files checked: 83
+  - Secret-like values are redacted before they appear in any report.
+  - Bandit ran on Python files (medium and high severity): 0 issue(s).
+Risks:
+  - None detected
+Next actions:
+  - Run the detected test command before making changes.
+  - Use `wintersolve explain <file>` on the most important source files.
+  - Use the architecture map as the first contributor onboarding guide.
+```
+
+On a repository with problems, the same report names them: a committed AWS
+key (redacted in the output), `eval()` on user input, SQL built from request
+data, a missing test directory, a README with no install section.
+
+## Commands
+
+| Command | What it does | Formats |
+| --- | --- | --- |
+| `wintersolve brain .` | Full project intelligence report (everything below, composed). | text, markdown, json |
+| `wintersolve scan .` | Quick health check from file names and marker files only. | text, markdown, json |
+| `wintersolve explain FILE` | What one file is, what it defines, what it depends on. | text |
+| `wintersolve debug --text "..."` | Likely causes and next steps for an error or stack trace. Also reads stdin. | text |
+| `wintersolve docs .` | Missing README sections and hygiene files; `--draft-readme` for a skeleton. | text |
+| `wintersolve review .` | Turns your uncommitted changes into review risks and a checklist. | text |
+
+Every command exits `0` on success, `1` if the analysis failed, and `2` for
+usage errors or targets that cannot be analyzed. Full reference:
+[docs/COMMANDS.md](docs/COMMANDS.md).
+
+A few things people do with it:
 
 ```bash
-git clone https://github.com/harshitkrhere/WinterSolve.git
-cd WinterSolve
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e .[dev]
+wintersolve brain . --format markdown --output REPO_BRAIN.md     # onboarding doc
+wintersolve brain . --format json | jq '.security.findings'       # feed a script
+pytest 2>&1 | wintersolve debug                                   # explain a failure
+wintersolve brain ~/code/some-repo --no-bandit                    # fastest possible
 ```
 
-This installs the package with test, lint, and type-check dependencies. The `wintersolve` command works inside the virtual environment.
+## Why WinterSolve
 
-### Run Without Installing (quick test)
+- **Offline by default.** No API keys, no accounts, no telemetry, no update
+  checks. Safe to run on private code.
+- **Fast on real repositories.** One filesystem walk that prunes `node_modules`,
+  virtual environments, and build output before descending.
+- **Honest.** Heuristics are labelled as heuristics. The security section says
+  exactly which checks ran, and severity is earned: `high` only for unambiguous
+  token formats, never for "this line mentions a password".
+- **Structured.** Plain text that pastes cleanly, Markdown for wikis, JSON with
+  a `schema_version` for tools. Same commit, same report, every time.
+- **Small.** Two runtime dependencies (`typer`, `rich`), plain dataclasses,
+  strict typing, tests that run in seconds.
 
-From the project folder:
+## Use it in CI
+
+```yaml
+- run: python -m pip install wintersolve
+- run: wintersolve brain . --format markdown --output repo-brain.md
+- run: cat repo-brain.md >> "$GITHUB_STEP_SUMMARY"
+```
+
+The report shows up in the Actions job summary. A drop-in workflow and the
+recipe for failing a build on high-severity findings are in
+[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).
+
+## Installation
+
+| Method | Command |
+| --- | --- |
+| pipx (recommended) | `pipx install wintersolve` |
+| pip | `python -m pip install wintersolve` |
+| latest from GitHub | `pipx install git+https://github.com/harshitkrhere/WinterSolve.git` |
+| with Bandit for deeper Python checks | `pipx install "wintersolve[security]"` |
+
+Python 3.10 or newer, on Linux, macOS, or Windows. Details and troubleshooting:
+[docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+## How it works
+
+```text
+cli.py  ->  modules/*.py (one analyzer each)  ->  frozen dataclasses  ->  report.py
+```
+
+Analyzers never print and never touch the network. `brain` calls all of them
+and composes one report. Adding an analyzer is a module, a renderer, a
+few lines in the CLI, and a test. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## What it is not
+
+WinterSolve is not an AI assistant and does not need one. It will not write your
+code, and its security scan is a first pass, not an audit. There is an optional
+provider interface for people who want to build AI features on top of redacted
+reports; the CLI never calls it.
+
+## Security and privacy
+
+WinterSolve reads the directory you point it at (skipping `.git`, caches,
+virtual environments, and dependency folders), runs `git status` for `review`,
+and optionally runs Bandit. That is the complete list. Anything that looks like
+a credential is redacted before it reaches a report, and `explain` refuses
+files outside the project root. Details: [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md).
+Found a problem in WinterSolve itself? Please follow [SECURITY.md](SECURITY.md).
+
+## Development and tests
 
 ```bash
-$env:PYTHONPATH="src"; python -m wintersolve scan .
+git clone https://github.com/harshitkrhere/WinterSolve.git && cd WinterSolve
+python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+ruff check . && ruff format --check . && mypy && pytest
 ```
 
-Or use the local PowerShell helper:
-
-```powershell
-.\scripts\wintersolve.ps1 scan .
-```
-
-## Usage
-
-See [docs/COMMANDS.md](docs/COMMANDS.md) for command examples.
-
-See [docs/GITHUB_LAUNCH.md](docs/GITHUB_LAUNCH.md) for GitHub install, app/website usage, JSON integration, and CI examples.
-
-## Development Setup
-
-WinterSolve requires `typer>=0.12` and `rich>=13.0` at runtime.
-
-### Install the `wintersolve` Command
-
-To make this work:
-
-```powershell
-wintersolve scan .
-```
-
-install the project in editable mode:
-
-```powershell
-python -m pip install -e .
-```
-
-Then open a new PowerShell window and run:
-
-```powershell
-wintersolve scan .
-```
-
-Run the tests:
-
-```bash
-PYTHONPATH=src python -m unittest discover -s tests
-```
-
-On Windows PowerShell:
-
-```powershell
-$env:PYTHONPATH="src"; python -m unittest discover -s tests
-```
-
-## Testing
-
-WinterSolve uses Python's built-in `unittest` runner. The test suite covers repository scanning, Repo Brain JSON output, command detection, secret redaction, safe path handling, and mixed Python/Node.js project detection.
+That last line is the whole quality gate, and it is exactly what CI runs on
+Linux, macOS, and Windows across Python 3.10 to 3.14. Tests use temporary
+fixture projects and finish in seconds.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+Small contributions are the best ones here: a stack marker WinterSolve misses,
+a command it should have found, an error message it does not recognise, a
+false positive it should not raise. Each is a few lines plus a test.
 
-## Security
-
-See [SECURITY.md](SECURITY.md) for security reporting guidance.
-
-## License
-
-WinterSolve is released under the MIT License. See [LICENSE](LICENSE).
-
-## Suggested Repository Structure
-
-```text
-WinterSolve/
-  README.md
-  docs/
-    PROJECT_VISION.md
-    ROADMAP.md
-    MODULES.md
-  examples/
-    sample-reports/
-  templates/
-    prompts/
-    project-starters/
-  src/
-    wintersolve/
-      modules/
-      providers/
-      workflows/
-  tests/
-```
-
-## Project Values
-
-- Solve real developer problems.
-- Prefer useful workflows over flashy demos.
-- Keep the core modular.
-- Make contribution paths clear.
-- Respect developer privacy and project ownership.
-- Keep outputs readable, editable, and practical.
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), or [BEGINNER.md](BEGINNER.md)
+for a guided first week. Ideas and questions go in
+[Discussions](https://github.com/harshitkrhere/WinterSolve/discussions);
+bugs in [Issues](https://github.com/harshitkrhere/WinterSolve/issues).
 
 ## Status
 
-WinterSolve is in the early product foundation stage.
+Version 0.3.0, alpha. The command set is stable; report wording may still
+change between minor versions, and the JSON `schema_version` is bumped for any
+breaking change. See the [changelog](CHANGELOG.md) and the [roadmap](ROADMAP.md).
 
-The CLI now includes working `brain`, `scan`, `explain`, `debug`, `docs`, and `review` workflows. The next step is to deepen Repo Brain with richer language analyzers, optional AI enhancement, and GitHub-ready release polish.
+If WinterSolve saved you time, a star helps other people find it.
+
+## License
+
+[MIT](LICENSE).

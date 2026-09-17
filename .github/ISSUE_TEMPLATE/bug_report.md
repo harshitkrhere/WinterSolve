@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report something that is broken in WinterSolve
+about: Something in WinterSolve gave a wrong, confusing, or crashing result
 title: "[Bug]: "
 labels: bug
 assignees: ""
@@ -8,29 +8,27 @@ assignees: ""
 
 ## What happened?
 
-Describe the problem clearly.
+A clear description of the problem. If a report was wrong (a false positive,
+a missed command, a mislabelled stack), say what you expected instead.
 
 ## Command
 
 ```text
-Paste the WinterSolve command you ran here.
+wintersolve ...
 ```
 
-## Expected behavior
+## Output
 
-What did you expect to happen?
-
-## Actual behavior
-
-What happened instead?
+Paste the relevant output. Secrets are redacted by WinterSolve, but please
+double-check before posting.
 
 ## Environment
 
 - OS:
-- WinterSolve version:
-- Python version:
+- Python version (`python --version`):
+- WinterSolve version (`wintersolve --version`):
+- Installed with (pip / pipx / from source):
 
-## Extra context
+## Minimal reproduction (optional but very helpful)
 
-Add logs, screenshots, or example files if useful.
-
+A tiny folder layout or file snippet that reproduces the behaviour.
