@@ -7,6 +7,7 @@
 <p align="center">
   <a href="https://github.com/harshitkrhere/WinterSolve/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/harshitkrhere/WinterSolve/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/harshitkrhere/WinterSolve/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/harshitkrhere/WinterSolve/actions/workflows/codeql.yml/badge.svg"></a>
+  <a href="https://pypi.org/project/wintersolve/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/wintersolve.svg"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-green.svg"></a>
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue.svg">
   <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
@@ -30,7 +31,8 @@ cd path/to/any/project
 wintersolve brain .
 ```
 
-Not on PyPI yet, or want the latest commit? `pipx install git+https://github.com/harshitkrhere/WinterSolve.git`
+If `wintersolve` is not found afterwards, `python -m wintersolve brain .` always works.
+Want the latest commit instead of a release? `pipx install git+https://github.com/harshitkrhere/WinterSolve.git`
 
 ## What you get
 
