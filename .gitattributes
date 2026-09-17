@@ -1,0 +1,5 @@
+# Normalise line endings so Windows and Unix contributors produce identical diffs.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.gif binary

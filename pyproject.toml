@@ -1,18 +1,31 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "wintersolve"
-version = "0.2.0"
-description = "Open-source developer + AI toolkit for practical engineering workflows."
+dynamic = ["version"]
+description = "Offline-first repository intelligence: understand, debug, document, and review any codebase from the terminal."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [
-  { name = "WinterSolve Contributors" }
+license-files = ["LICENSE"]
+authors = [{ name = "WinterSolve Contributors" }]
+maintainers = [{ name = "Harshit Kumar (harshitkrhere)" }]
+keywords = [
+  "cli",
+  "developer-tools",
+  "codebase-analysis",
+  "repository-analysis",
+  "static-analysis",
+  "security-scanning",
+  "secret-detection",
+  "onboarding",
+  "documentation",
+  "code-review",
+  "offline",
+  "repo-brain",
 ]
-keywords = ["ai", "developer-tools", "cli", "automation", "codebase-analysis", "repository-analysis", "security-scanning"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
@@ -23,11 +36,13 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Software Development",
   "Topic :: Software Development :: Documentation",
   "Topic :: Software Development :: Quality Assurance",
   "Topic :: Security",
-  "Topic :: Utilities"
+  "Topic :: Utilities",
+  "Typing :: Typed",
 ]
 dependencies = [
   "typer>=0.12",
@@ -35,8 +50,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "mypy", "ruff", "bandit", "pre-commit"]
+# Everything needed to run the quality gates locally (same as CI).
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "mypy>=1.10",
+  "ruff>=0.6",
+  "bandit>=1.7",
+  "pre-commit>=3.7",
+]
+# Deeper Python static analysis inside `wintersolve brain`. Optional: the
+# heuristic scanner works without it, and the report says which one ran.
 security = ["bandit>=1.7"]
+# Client libraries for the optional AI provider examples. Never required.
 ai = ["openai>=1.0", "anthropic>=0.18"]
 all = ["bandit>=1.7", "openai>=1.0", "anthropic>=0.18"]
 
@@ -46,41 +72,57 @@ wintersolve = "wintersolve.cli:main"
 [project.urls]
 Homepage = "https://github.com/harshitkrhere/WinterSolve"
 Repository = "https://github.com/harshitkrhere/WinterSolve"
-Issues = "https://github.com/harshitkrhere/WinterSolve/issues"
 Documentation = "https://github.com/harshitkrhere/WinterSolve/tree/main/docs"
+Changelog = "https://github.com/harshitkrhere/WinterSolve/blob/main/CHANGELOG.md"
+Issues = "https://github.com/harshitkrhere/WinterSolve/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "wintersolve.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+wintersolve = ["py.typed"]
+
+# ---------------------------------------------------------------------------
+# Quality tooling. `pip install -e ".[dev]"` gives you everything below.
+# ---------------------------------------------------------------------------
+
 [tool.ruff]
 target-version = "py310"
 line-length = 100
-src = ["src"]
+src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "UP",  # pyupgrade
-    "C4",  # flake8-comprehensions
-    "DTZ", # flake8-datetimez
-    "T10", # flake8-debugger
-    "PTH", # flake8-use-pathlib
-    "ERA", # eradicate
-    "PL",  # pylint
-    "TRY", # tryceratops
+  "E",    # pycodestyle errors
+  "W",    # pycodestyle warnings
+  "F",    # pyflakes
+  "I",    # isort
+  "B",    # flake8-bugbear
+  "UP",   # pyupgrade
+  "C4",   # flake8-comprehensions
+  "DTZ",  # flake8-datetimez
+  "T10",  # flake8-debugger
+  "PTH",  # flake8-use-pathlib
+  "ERA",  # eradicate (commented-out code)
+  "PL",   # pylint
+  "TRY",  # tryceratops
+  "SIM",  # flake8-simplify
+  "RUF",  # ruff-specific rules
+  "ARG",  # unused arguments
 ]
 ignore = [
-    "TRY003",  # Avoid specifying long messages outside the exception class
-    "TRY301",  # CLI commands intentionally raise Typer exits after rendering output
+  "TRY003",  # Long messages in exceptions are fine for a CLI.
+  "PLR0913", # Analyzer functions legitimately take several inputs.
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004"] # Magic numbers in assertions are readable.
 
 [tool.ruff.lint.isort]
 known-first-party = ["wintersolve"]
-known-third-party = ["typer", "rich", "pytest", "bandit", "openai", "anthropic"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -88,28 +130,32 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "--strict-markers --strict-config -v"
+addopts = "--strict-markers --strict-config -ra"
+filterwarnings = ["error::DeprecationWarning:wintersolve.*"]
 
+# No python_version pin: CI runs mypy on every supported interpreter, and a pin
+# makes mypy choke on third-party stubs that use newer syntax.
 [tool.mypy]
-python_version = "3.10"
 strict = true
-warn_return_any = true
-warn_unused_configs = true
+warn_unreachable = true
 show_error_codes = true
-explicit_package_bases = true
+files = ["src/wintersolve", "tests"]
+
+# The AI SDKs are optional extras: treat them as opaque whether or not they
+# happen to be installed, so type checking gives the same answer everywhere.
+[[tool.mypy.overrides]]
+module = ["openai", "openai.*", "anthropic", "anthropic.*", "numpy", "numpy.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
 
 [tool.coverage.run]
-source = ["src/wintersolve"]
-omit = ["tests/*", "*/__pycache__/*"]
+source = ["wintersolve"]
+branch = true
 
 [tool.coverage.report]
+show_missing = true
 exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if __name__ == .__main__.:",
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
 ]
