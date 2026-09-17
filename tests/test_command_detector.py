@@ -91,3 +91,16 @@ class TestOtherSources:
         write(tmp_path / "README.md", "```\nmake test\nMAKE TEST\n```\n")
 
         assert commands_of(tmp_path) == ["make test"]
+
+    def test_conventional_commands_for_python_tooling(self, tmp_path: Path) -> None:
+        write(tmp_path / ".pre-commit-config.yaml", "repos: []\n")
+        write(tmp_path / "tox.ini", "[tox]\n")
+        write(tmp_path / "noxfile.py", "import nox\n")
+
+        assert commands_of(tmp_path) == ["pre-commit run --all-files", "tox", "nox"]
+
+    def test_conventional_commands_for_task_runners(self, tmp_path: Path) -> None:
+        write(tmp_path / "justfile", "test:\n\tpytest\n")
+        write(tmp_path / "Taskfile.yml", "version: '3'\n")
+
+        assert commands_of(tmp_path) == ["just --list", "task --list"]
