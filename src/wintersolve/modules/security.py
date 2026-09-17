@@ -181,36 +181,42 @@ def analyze_security(root: Path, *, run_bandit: bool = True) -> SecuritySummary:
 def _scan_text(relative_path: str, text: str, is_code: bool) -> list[SecurityFinding]:
     findings: list[SecurityFinding] = []
     for line_number, line in enumerate(text.splitlines(), start=1):
-        secret_kind = _match_known_secret(line)
-        if secret_kind:
-            findings.append(
-                _finding(relative_path, line_number, CATEGORY_SECRET, secret_kind, "high", line)
-            )
-        else:
-            generic = GENERIC_SECRET_PATTERN.search(line)
-            if generic and looks_like_real_secret(generic.group(2)):
-                findings.append(
-                    _finding(
-                        relative_path,
-                        line_number,
-                        CATEGORY_SECRET,
-                        GENERIC_SECRET_KIND,
-                        "medium",
-                        line,
-                    )
-                )
+        findings.extend(_scan_line(relative_path, line_number, line, is_code=is_code))
+    return findings
 
-        if not is_code:
-            continue
+
+def _scan_line(
+    relative_path: str, line_number: int, line: str, *, is_code: bool
+) -> list[SecurityFinding]:
+    """Apply every rule to one line and return the findings, evidence redacted."""
+    findings: list[SecurityFinding] = []
+
+    def report(category: str, kind: str, severity: str) -> None:
+        findings.append(
+            SecurityFinding(
+                path=relative_path,
+                line=line_number,
+                category=category,
+                kind=kind,
+                severity=severity,
+                evidence=redact_secrets(line.strip())[:MAX_EVIDENCE_CHARS],
+            )
+        )
+
+    secret_kind = _match_known_secret(line)
+    if secret_kind:
+        report(CATEGORY_SECRET, secret_kind, "high")
+    else:
+        generic = GENERIC_SECRET_PATTERN.search(line)
+        if generic and looks_like_real_secret(generic.group(2)):
+            report(CATEGORY_SECRET, GENERIC_SECRET_KIND, "medium")
+
+    if is_code:
         code_only = strip_strings_and_comments(line)
         for kind, pattern, inspect_strings in CODE_PATTERNS:
             haystack = line if inspect_strings else code_only
             if pattern.search(haystack):
-                findings.append(
-                    _finding(
-                        relative_path, line_number, CATEGORY_CODE_PATTERN, kind, "medium", line
-                    )
-                )
+                report(CATEGORY_CODE_PATTERN, kind, "medium")
     return findings
 
 
@@ -229,19 +235,6 @@ def _match_known_secret(line: str) -> str | None:
         if pattern.search(line):
             return kind
     return None
-
-
-def _finding(
-    path: str, line: int, category: str, kind: str, severity: str, evidence: str
-) -> SecurityFinding:
-    return SecurityFinding(
-        path=path,
-        line=line,
-        category=category,
-        kind=kind,
-        severity=severity,
-        evidence=redact_secrets(evidence.strip())[:MAX_EVIDENCE_CHARS],
-    )
 
 
 def looks_like_real_secret(value: str) -> bool:

@@ -84,7 +84,14 @@ def explain_file(path: Path) -> FileExplanation:
         exists=True,
         language=language,
         line_count=len(lines),
-        summary=_build_summary(path, language, len(lines), symbols, imports, docstring),
+        summary=_build_summary(
+            path,
+            language=language,
+            line_count=len(lines),
+            symbols=symbols,
+            imports=imports,
+            docstring=docstring,
+        ),
         symbols=symbols,
         imports=imports,
         risks=_build_risks(len(lines), symbols, errors),
@@ -159,6 +166,7 @@ def _generic_imports(lines: list[str]) -> list[str]:
 
 def _build_summary(
     path: Path,
+    *,
     language: str,
     line_count: int,
     symbols: list[str],
