@@ -1,6 +1,7 @@
 name: OSSF Scorecard
 
 on:
+  workflow_dispatch:
   branch_protection_rule:
   schedule:
     - cron: "30 5 * * 1"
