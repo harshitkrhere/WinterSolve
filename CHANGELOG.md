@@ -10,6 +10,19 @@ All notable changes to WinterSolve are documented here. The format follows
 
 - Command detection for pre-commit, tox, nox, just, and Taskfile marker files.
 
+### Fixed
+
+- Community files are recognised by convention instead of exact name:
+  `LICENSE.txt`, `Readme.md`, `README.rst`, `COPYING`, `CHANGES.rst`, and
+  `History.md` all count. Found by running the tool on Flask and Express,
+  which were wrongly told they had no LICENSE and no README.
+
+### Changed
+
+- README section detection understands underlined headings (Markdown setext
+  and reStructuredText), reads the README under any conventional name, and
+  accepts "Example" as a Usage section.
+
 ## [0.3.0] - 2026-09-17
 
 First public release candidate. Everything below compares to the 0.2.0 tree

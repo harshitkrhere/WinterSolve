@@ -8,6 +8,7 @@ live in exactly one place.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -188,6 +189,19 @@ CODE_EXTENSIONS = frozenset(
 # minified assets) and are skipped rather than read into memory.
 MAX_TEXT_FILE_BYTES = 250_000
 
+# Community-standard files come in many spellings: ``README.rst``, ``LICENSE.txt``,
+# ``Readme.md``, ``COPYING``, ``CHANGES.rst``. Canonical name -> accepted stems.
+HYGIENE_FILE_STEMS = {
+    "README": ("README",),
+    "LICENSE": ("LICENSE", "LICENCE", "COPYING"),
+    "CONTRIBUTING": ("CONTRIBUTING",),
+    "SECURITY": ("SECURITY",),
+    "CODE_OF_CONDUCT": ("CODE_OF_CONDUCT",),
+    "CHANGELOG": ("CHANGELOG", "CHANGES", "HISTORY", "NEWS"),
+}
+# In order of preference when a project has more than one spelling.
+HYGIENE_FILE_SUFFIXES = (".md", ".markdown", ".rst", ".txt", "")
+
 
 @dataclass(frozen=True)
 class ProjectFile:
@@ -255,6 +269,30 @@ def iter_project_files(root: Path) -> list[ProjectFile]:
 def is_ignored_directory(name: str) -> bool:
     """Whether a directory *name* (not path) should be skipped during a walk."""
     return name in IGNORED_DIRECTORIES or name.endswith(IGNORED_DIRECTORY_SUFFIXES)
+
+
+def find_hygiene_files(root_file_names: Iterable[str]) -> dict[str, str]:
+    """Map canonical names (``README``, ``LICENSE``...) to the actual file at the root.
+
+    Matching is case-insensitive and accepts the usual suffixes, so ``Readme.md``,
+    ``README.rst`` and ``LICENSE.txt`` all count. When several spellings exist,
+    Markdown wins because it is what the docs assistant reads best.
+    """
+
+    def preference(name: str) -> tuple[int, str]:
+        suffix = Path(name).suffix.lower()
+        rank = HYGIENE_FILE_SUFFIXES.index(suffix) if suffix in HYGIENE_FILE_SUFFIXES else 99
+        return rank, name
+
+    found: dict[str, str] = {}
+    for name in sorted(root_file_names, key=preference):
+        path = Path(name)
+        if path.suffix.lower() not in HYGIENE_FILE_SUFFIXES:
+            continue
+        for canonical, stems in HYGIENE_FILE_STEMS.items():
+            if path.stem.upper() in stems:
+                found.setdefault(canonical, name)
+    return found
 
 
 def is_probably_text(path: Path, size: int | None = None) -> bool:

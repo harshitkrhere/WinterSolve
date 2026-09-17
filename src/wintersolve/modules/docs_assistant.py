@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from wintersolve.modules.scanner import ScanResult, scan_project
+from wintersolve.project import find_hygiene_files, read_text_file
 
 MAX_SECTION_SUGGESTIONS = 8
 
@@ -24,7 +25,7 @@ EXPECTED_README_SECTIONS: dict[str, tuple[str, ...]] = {
     "Usage": (
         "usage",
         "how to use",
-        "examples",
+        "example",
         "quick start",
         "quickstart",
         "getting started",
@@ -37,7 +38,10 @@ EXPECTED_README_SECTIONS: dict[str, tuple[str, ...]] = {
     "License": ("license", "licence"),
 }
 
-HEADING = re.compile(r"^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$")
+# ``## Title`` (Markdown ATX) and a title underlined with ``====`` or ``----``
+# (Markdown setext, and the only heading style reStructuredText has).
+ATX_HEADING = re.compile(r"^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$")
+UNDERLINE = re.compile(r"^\s{0,3}([=\-~^\"'*+#`:.])\1{2,}\s*$")
 
 
 @dataclass(frozen=True)
@@ -52,10 +56,7 @@ def suggest_docs(path: Path, scan: ScanResult | None = None) -> DocsSuggestion:
     """Check README structure and hygiene files, and draft a README skeleton."""
     if scan is None:
         scan = scan_project(path)
-    readme_path = path / "README.md"
-    readme_text = (
-        readme_path.read_text(encoding="utf-8", errors="replace") if readme_path.exists() else ""
-    )
+    readme_text = _read_readme(path)
 
     headings = readme_headings(readme_text)
     missing_sections = [
@@ -63,7 +64,7 @@ def suggest_docs(path: Path, scan: ScanResult | None = None) -> DocsSuggestion:
         for section, keywords in EXPECTED_README_SECTIONS.items()
         if not any(keyword in heading for heading in headings for keyword in keywords)
     ]
-    project_name = _detect_project_name(path.name, readme_text)
+    project_name = readme_title(readme_text) or path.name
 
     return DocsSuggestion(
         path=path,
@@ -73,19 +74,62 @@ def suggest_docs(path: Path, scan: ScanResult | None = None) -> DocsSuggestion:
     )
 
 
+def _read_readme(project: Path) -> str:
+    """Read the project's README whatever it is called (README.md, Readme.md, README.rst...)."""
+    if not project.is_dir():
+        return ""
+    root_files = (entry.name for entry in project.iterdir() if entry.is_file())
+    readme_name = find_hygiene_files(root_files).get("README")
+    if readme_name is None:
+        return ""
+    return read_text_file(project / readme_name)
+
+
 def readme_headings(markdown: str) -> list[str]:
     """Return lower-cased heading texts, ignoring headings inside code fences."""
-    headings: list[str] = []
+    return [text.lower() for _, text in _headings(markdown)]
+
+
+def readme_title(markdown: str) -> str | None:
+    """The first top-level heading, which is almost always the project name."""
+    for level, text in _headings(markdown):
+        if level == 1:
+            return text
+    return None
+
+
+def _headings(markdown: str) -> list[tuple[int, str]]:
+    """Find headings as (level, text), in document order.
+
+    Handles ``# Title`` and titles underlined with a row of punctuation, the
+    form reStructuredText uses. Fenced code blocks are skipped so a ``# comment``
+    in an example does not count as a section.
+    """
+    headings: list[tuple[int, str]] = []
+    lines = markdown.splitlines()
     in_code_block = False
-    for line in markdown.splitlines():
+    previous = ""
+    for line in lines:
         if line.strip().startswith("```"):
             in_code_block = not in_code_block
+            previous = ""
             continue
         if in_code_block:
             continue
-        match = HEADING.match(line)
-        if match:
-            headings.append(match.group(1).lower())
+
+        stripped = line.strip()
+        atx = ATX_HEADING.match(line)
+        underline = UNDERLINE.match(line)
+        if atx:
+            level = len(stripped) - len(stripped.lstrip("#"))
+            headings.append((level, atx.group(1)))
+            previous = ""
+        elif underline and previous and len(stripped) >= min(len(previous), 3):
+            headings.append((1 if underline.group(1) == "=" else 2, previous))
+            previous = ""
+        else:
+            # A list item or quote followed by a rule is not a title.
+            previous = "" if stripped.startswith(("-", "*", "+", ">", "|")) else stripped
     return headings
 
 
@@ -96,14 +140,6 @@ def _build_suggestions(missing_files: list[str], missing_sections: list[str]) ->
     ]
     suggestions.extend(f"Add {name} for a healthier open-source project." for name in missing_files)
     return suggestions or ["Documentation looks healthy based on the offline checklist."]
-
-
-def _detect_project_name(default_name: str, readme_text: str) -> str:
-    for line in readme_text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("# "):
-            return stripped[2:].strip() or default_name
-    return default_name
 
 
 def _build_readme_draft(

@@ -60,6 +60,24 @@ class TestScanProject:
         assert "No files were found in the project directory." in result.risks
         assert "No obvious test files or test directories were detected." in result.risks
 
+    def test_hygiene_files_are_matched_by_convention_not_exact_name(self, tmp_path: Path) -> None:
+        # Flask ships LICENSE.txt and CHANGES.rst; Express ships Readme.md and History.md.
+        write(tmp_path / "Readme.md", "# Demo\n")
+        write(tmp_path / "LICENSE.txt", "MIT\n")
+        write(tmp_path / "CHANGES.rst", "Changes\n=======\n")
+        write(tmp_path / "contributing.rst", "How to help\n")
+
+        result = scan_project(tmp_path)
+
+        assert result.important_files == [
+            "Readme.md",
+            "contributing.rst",
+            "LICENSE.txt",
+            "CHANGES.rst",
+        ]
+        assert result.missing_recommended_files == ["SECURITY.md"]
+        assert "No README was found, so onboarding may be difficult." not in result.risks
+
     def test_healthy_project_has_no_risks(self, python_project: Path) -> None:
         write(python_project / "CONTRIBUTING.md", "# Contributing\n")
         write(python_project / "SECURITY.md", "# Security\n")

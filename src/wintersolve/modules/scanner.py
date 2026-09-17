@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from wintersolve.logging_config import get_logger
-from wintersolve.project import LANGUAGE_BY_EXTENSION, walk_project
+from wintersolve.project import LANGUAGE_BY_EXTENSION, find_hygiene_files, walk_project
 
 logger = get_logger("wintersolve.modules.scanner")
 
@@ -77,13 +77,17 @@ FRAMEWORK_MARKERS = {
     "Jenkinsfile": "Jenkins",
 }
 
-IMPORTANT_FILES = [
-    "README.md",
-    "CONTRIBUTING.md",
+# Community files are matched by convention (README.rst, LICENSE.txt, Readme.md
+# all count; see ``project.find_hygiene_files``); manifests by exact name.
+HYGIENE_FILE_ORDER = [
+    "README",
+    "CONTRIBUTING",
     "LICENSE",
-    "SECURITY.md",
-    "CODE_OF_CONDUCT.md",
-    "CHANGELOG.md",
+    "SECURITY",
+    "CODE_OF_CONDUCT",
+    "CHANGELOG",
+]
+IMPORTANT_MANIFESTS = [
     "package.json",
     "pyproject.toml",
     "requirements.txt",
@@ -93,8 +97,14 @@ IMPORTANT_FILES = [
     ".env.example",
 ]
 
-# Files whose absence is worth calling out for any project meant to be shared.
-RECOMMENDED_FILES = ["README.md", "CONTRIBUTING.md", "LICENSE", "SECURITY.md"]
+# Files whose absence is worth calling out for any project meant to be shared,
+# as canonical name -> the filename we suggest creating.
+RECOMMENDED_FILES = {
+    "README": "README.md",
+    "CONTRIBUTING": "CONTRIBUTING.md",
+    "LICENSE": "LICENSE",
+    "SECURITY": "SECURITY.md",
+}
 
 # Directory names that conventionally hold source code. Deeply nested packages
 # are noise in an overview, so listing stops at ``src/<package>/<subpackage>``.
@@ -154,8 +164,12 @@ def scan_project(path: Path) -> ScanResult:
     frameworks = sorted(
         {stack for marker, stack in FRAMEWORK_MARKERS.items() if marker in top_level_entries}
     )
-    important_files = [name for name in IMPORTANT_FILES if name in relative_files]
-    missing_recommended_files = [name for name in RECOMMENDED_FILES if name not in relative_files]
+    hygiene = find_hygiene_files(name for name in relative_files if "/" not in name)
+    important_files = [hygiene[key] for key in HYGIENE_FILE_ORDER if key in hygiene]
+    important_files.extend(name for name in IMPORTANT_MANIFESTS if name in relative_files)
+    missing_recommended_files = [
+        suggested for key, suggested in RECOMMENDED_FILES.items() if key not in hygiene
+    ]
 
     likely_test_paths = sorted(item for item in top_level_entries if _looks_like_test_path(item))
     likely_source_paths = sorted(item for item in relative_dirs if _looks_like_source_path(item))
@@ -203,7 +217,7 @@ def _missing_project(path: Path) -> ScanResult:
         languages=[],
         frameworks=[],
         important_files=[],
-        missing_recommended_files=list(RECOMMENDED_FILES),
+        missing_recommended_files=list(RECOMMENDED_FILES.values()),
         likely_test_paths=[],
         likely_source_paths=[],
         risks=[f"Project path does not exist or is not a directory: {path}"],
@@ -243,7 +257,7 @@ def _build_risks(
     if not frameworks:
         risks.append("No common project or framework markers were detected.")
     if "README.md" in missing_recommended_files:
-        risks.append("No README.md was found, so onboarding may be difficult.")
+        risks.append("No README was found, so onboarding may be difficult.")
     if "SECURITY.md" in missing_recommended_files:
         risks.append("No SECURITY.md was found for vulnerability reporting guidance.")
     if not likely_test_paths:
