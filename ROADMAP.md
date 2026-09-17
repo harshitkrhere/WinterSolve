@@ -1,37 +1,46 @@
 # Roadmap
 
-WinterSolve aims to become a trusted offline-first developer intelligence toolkit.
+WinterSolve aims to be the trusted, offline-first way to understand any
+repository from the terminal. This page lists what is next; the
+[changelog](CHANGELOG.md) lists what is done.
 
-## Current Stage
+## Now (0.3.x)
 
-WinterSolve is in alpha. The project is usable, packaged, tested, and ready for early contributors, but its APIs and workflows may still change before a stable 1.0 release.
+- First public release on PyPI and a tagged GitHub release.
+- Real-world feedback: run `wintersolve brain .` on many popular repositories
+  and fix every false positive, missed command, and awkward sentence it produces.
+- Good-first-issue backlog seeded from that exercise.
 
-## Near Term
+## Next (0.4)
 
-- Expand CLI tests and snapshot examples for every public command.
-- Add richer language analyzers for Python, TypeScript, Go, and Rust.
-- Add dependency and command detection for more package managers.
-- Improve JSON output schema stability and document schema versions.
-- Add example GitHub Action usage for generated Repo Brain reports.
+- Language-aware explainers for TypeScript/JavaScript and Go (symbols, imports,
+  exports) to match the Python one.
+- Dependency overview: declared dependencies per ecosystem, with counts and
+  obviously stale pins, entirely offline.
+- Import graph for Python packages, surfaced as "most depended-on modules" in
+  the Repo Brain report.
+- Monorepo awareness: detect stacks and commands in top-level `apps/*` and
+  `packages/*` directories.
+- HTML export of the Repo Brain report for sharing and dashboards.
 
-## Mid Term
+## Later
 
-- Add plugin discovery with safe, explicit registration.
-- Add optional local model/provider integrations with redaction gates.
-- Add benchmark fixtures for repository scanning performance.
-- Add generated API reference documentation.
-- Add reproducible release checklist and signed release artifacts where practical.
+- Optional AI enhancement of any report from redacted context, clearly marked
+  in the output, with local models supported first.
+- A minimal, explicit plugin registration API once there are third-party
+  analyzers that need it.
+- Benchmark fixtures for scan performance on very large repositories.
+- Signed release artifacts.
 
-## 1.0 Criteria
+## 1.0 means
 
-- Stable CLI command contract and JSON schemas.
-- Strong test coverage across command, module, report, and security behavior.
-- Documented support and deprecation policy.
-- At least one real-world adopter report or case study.
-- Clear maintainer process for triage, releases, and security response.
+- The CLI command contract and JSON schema are stable and documented.
+- Every command has snapshot tests on a set of fixture repositories.
+- A documented support and deprecation policy.
+- At least a handful of real projects using it in CI.
 
-## Non-Goals
+## Non-goals
 
-- WinterSolve will not make hidden network calls.
-- WinterSolve will not require an AI account for core value.
-- WinterSolve will not claim adoption, audits, or contributor history that has not happened.
+- No hidden network calls, telemetry, or update checks.
+- No AI account required for core value.
+- No claims of adoption, audits, or maturity the project has not earned.

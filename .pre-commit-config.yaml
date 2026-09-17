@@ -1,6 +1,8 @@
+# Local quality gates. Install once with `pre-commit install`; the same checks
+# run in CI, so a green pre-commit run is a green pull request.
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.0
+    rev: v0.16.8
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
@@ -10,13 +12,15 @@ repos:
     rev: v1.11.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests]
+        files: ^(src|tests)/
+        additional_dependencies: ["typer>=0.12", "rich>=13.0", "pytest>=8.0"]
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.7
     hooks:
       - id: bandit
-        args: [-r, src/wintersolve, -f, json, -o, bandit-report.json]
+        args: [-r, src/wintersolve, -ll]
+        files: ^src/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -28,5 +32,5 @@ repos:
       - id: check-json
       - id: check-added-large-files
       - id: check-merge-conflict
-      - id: debug-logger
+      - id: debug-statements
       - id: detect-private-key

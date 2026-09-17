@@ -1,36 +1,80 @@
+"""Repository health scan: what is in this project and what is obviously missing.
+
+The scan is deliberately cheap. It looks at file names, extensions, and a few
+well-known marker files, and never opens source files. Deeper analysis is the
+job of the other modules, which build on the ``ScanResult`` produced here.
+"""
+
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
 from wintersolve.logging_config import get_logger
-from wintersolve.project import (
-    LANGUAGE_BY_EXTENSION,
-    is_ignored,
-    iter_project_files,
-)
+from wintersolve.project import LANGUAGE_BY_EXTENSION, walk_project
 
 logger = get_logger("wintersolve.modules.scanner")
 
+# Top-level file (or directory) → the stack it signals. Only the repository
+# root is checked, which keeps monorepo sub-packages from being over-counted.
 FRAMEWORK_MARKERS = {
+    # JavaScript / TypeScript
     "package.json": "Node.js",
+    "tsconfig.json": "TypeScript",
+    "pnpm-lock.yaml": "pnpm",
+    "yarn.lock": "Yarn",
+    "bun.lock": "Bun",
+    "bun.lockb": "Bun",
+    "deno.json": "Deno",
+    "deno.jsonc": "Deno",
     "next.config.js": "Next.js",
     "next.config.mjs": "Next.js",
+    "next.config.ts": "Next.js",
+    "nuxt.config.ts": "Nuxt",
+    "nuxt.config.js": "Nuxt",
     "vite.config.js": "Vite",
     "vite.config.ts": "Vite",
+    "vite.config.mjs": "Vite",
+    "astro.config.mjs": "Astro",
     "angular.json": "Angular",
     "svelte.config.js": "Svelte",
+    "remix.config.js": "Remix",
+    "tailwind.config.js": "Tailwind CSS",
+    "tailwind.config.ts": "Tailwind CSS",
+    # Python
     "pyproject.toml": "Python package",
+    "setup.py": "Python package",
     "requirements.txt": "Python",
+    "Pipfile": "Pipenv",
+    "poetry.lock": "Poetry",
+    "uv.lock": "uv",
     "manage.py": "Django",
+    # Other languages
     "Cargo.toml": "Rust",
     "go.mod": "Go",
     "pom.xml": "Maven",
     "build.gradle": "Gradle",
+    "build.gradle.kts": "Gradle",
     "composer.json": "PHP Composer",
     "Gemfile": "Ruby",
+    "mix.exs": "Elixir",
+    "pubspec.yaml": "Dart / Flutter",
+    "CMakeLists.txt": "CMake",
+    "Makefile": "Make",
+    # Infrastructure and tooling
     "Dockerfile": "Docker",
+    "docker-compose.yml": "Docker Compose",
+    "docker-compose.yaml": "Docker Compose",
+    "compose.yaml": "Docker Compose",
+    "compose.yml": "Docker Compose",
+    "main.tf": "Terraform",
+    "serverless.yml": "Serverless Framework",
+    ".pre-commit-config.yaml": "pre-commit",
+    ".github/workflows": "GitHub Actions",
+    ".gitlab-ci.yml": "GitLab CI",
+    "Jenkinsfile": "Jenkins",
 }
 
 IMPORTANT_FILES = [
@@ -39,6 +83,7 @@ IMPORTANT_FILES = [
     "LICENSE",
     "SECURITY.md",
     "CODE_OF_CONDUCT.md",
+    "CHANGELOG.md",
     "package.json",
     "pyproject.toml",
     "requirements.txt",
@@ -48,6 +93,20 @@ IMPORTANT_FILES = [
     ".env.example",
 ]
 
+# Files whose absence is worth calling out for any project meant to be shared.
+RECOMMENDED_FILES = ["README.md", "CONTRIBUTING.md", "LICENSE", "SECURITY.md"]
+
+# Directory names that conventionally hold source code. Deeply nested packages
+# are noise in an overview, so listing stops at ``src/<package>/<subpackage>``.
+SOURCE_ROOT_NAMES = frozenset(
+    {"src", "app", "lib", "packages", "services", "cmd", "internal", "pkg"}
+)
+MAX_SOURCE_PATH_DEPTH = 3
+
+TESTABLE_EXTENSIONS = frozenset({".py", ".js", ".ts", ".tsx", ".go", ".rs", ".rb", ".java"})
+
+# Reused by the Repo Brain recommendations so it can drop this line once
+# commands have actually been detected.
 RECOMMEND_DOCUMENT_COMMANDS = (
     "Document the main setup, test, and build commands for the detected stack."
 )
@@ -68,70 +127,42 @@ class ScanResult:
     risks: list[str]
     recommendations: list[str]
 
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["path"] = str(self.path)
+        data["languages"] = [{"name": name, "files": count} for name, count in self.languages]
+        return data
+
 
 def scan_project(path: Path) -> ScanResult:
+    """Scan a project directory and summarise its shape, stack, and hygiene."""
     logger.debug("Scanning project at %s", path)
-    if not path.exists() or not path.is_dir():
+    if not path.is_dir():
         logger.warning("Project path does not exist or is not a directory: %s", path)
-        return ScanResult(
-            path=path,
-            exists=False,
-            total_files=0,
-            total_directories=0,
-            languages=[],
-            frameworks=[],
-            important_files=[],
-            missing_recommended_files=[],
-            likely_test_paths=[],
-            likely_source_paths=[],
-            risks=[f"Project path does not exist or is not a directory: {path}"],
-            recommendations=["Run `wintersolve scan` with a valid project directory."],
-        )
+        return _missing_project(path)
 
-    project_files = iter_project_files(path)
-
-    # We still need directories for test path detection.
-    # iter_project_files only returns files. Let's do a simple directory scan.
-    directories: list[Path] = []
-    for item in path.rglob("*"):
-        if item.is_dir() and not is_ignored(item, path):
-            directories.append(item)
-
-    files = [pf.path for pf in project_files]
-    relative_files = {pf.relative_path for pf in project_files}
-    relative_dirs = {_to_posix(directory.relative_to(path)) for directory in directories}
+    tree = walk_project(path)
+    relative_files = {file.relative_path for file in tree.files}
+    relative_dirs = set(tree.directories)
+    top_level_entries = relative_files | relative_dirs
 
     language_counts = Counter(
-        LANGUAGE_BY_EXTENSION[file.suffix.lower()]
-        for file in files
-        if file.suffix.lower() in LANGUAGE_BY_EXTENSION
+        LANGUAGE_BY_EXTENSION[file.path.suffix.lower()]
+        for file in tree.files
+        if file.path.suffix.lower() in LANGUAGE_BY_EXTENSION
     )
-
     frameworks = sorted(
-        {framework for marker, framework in FRAMEWORK_MARKERS.items() if marker in relative_files}
+        {stack for marker, stack in FRAMEWORK_MARKERS.items() if marker in top_level_entries}
     )
+    important_files = [name for name in IMPORTANT_FILES if name in relative_files]
+    missing_recommended_files = [name for name in RECOMMENDED_FILES if name not in relative_files]
 
-    important_files = [file for file in IMPORTANT_FILES if file in relative_files]
-    missing_recommended_files = [
-        file
-        for file in ["README.md", "CONTRIBUTING.md", "LICENSE", "SECURITY.md"]
-        if file not in relative_files
-    ]
-
-    likely_test_paths = sorted(
-        item for item in relative_dirs | relative_files if _looks_like_test_path(item)
-    )[:12]
-    likely_source_paths = sorted(
-        item
-        for item in relative_dirs
-        if item in {"src", "app", "lib", "packages", "services", "cmd", "internal"}
-        or item.startswith(("src/", "app/", "lib/"))
-    )[:12]
+    likely_test_paths = sorted(item for item in top_level_entries if _looks_like_test_path(item))
+    likely_source_paths = sorted(item for item in relative_dirs if _looks_like_source_path(item))
 
     risks = _build_risks(
-        total_files=len(files),
+        total_files=len(tree.files),
         frameworks=frameworks,
-        important_files=important_files,
         missing_recommended_files=missing_recommended_files,
         likely_test_paths=likely_test_paths,
     )
@@ -142,70 +173,82 @@ def scan_project(path: Path) -> ScanResult:
     )
 
     logger.info(
-        "Scan complete: %d files, %d dirs, frameworks: %s",
-        len(files),
-        len(directories),
-        frameworks,
+        "Scan complete: %d files, %d directories, stack: %s",
+        len(tree.files),
+        len(tree.directories),
+        ", ".join(frameworks) or "none",
     )
-
     return ScanResult(
         path=path,
         exists=True,
-        total_files=len(files),
-        total_directories=len(directories),
+        total_files=len(tree.files),
+        total_directories=len(tree.directories),
         languages=language_counts.most_common(),
         frameworks=frameworks,
         important_files=important_files,
         missing_recommended_files=missing_recommended_files,
-        likely_test_paths=likely_test_paths,
-        likely_source_paths=likely_source_paths,
+        likely_test_paths=likely_test_paths[:12],
+        likely_source_paths=likely_source_paths[:12],
         risks=risks,
         recommendations=recommendations,
     )
 
 
-TESTABLE_EXTENSIONS = {".py", ".js", ".ts", ".tsx", ".go", ".rs", ".rb", ".java"}
-
-
-def _looks_like_test_path(path: str) -> bool:
-    normalized = path.lower()
-    name = Path(path).name.lower()
-    ext = Path(path).suffix.lower()
-    return (
-        normalized == "tests"
-        or normalized.startswith("tests/")
-        or "/tests/" in normalized
-        or (name.startswith("test_") and ext in TESTABLE_EXTENSIONS)
-        or name.endswith("_test.py")
-        or name.endswith(".test.js")
-        or name.endswith(".test.ts")
-        or name.endswith(".spec.js")
-        or name.endswith(".spec.ts")
-        or name.endswith(".spec.tsx")
+def _missing_project(path: Path) -> ScanResult:
+    return ScanResult(
+        path=path,
+        exists=False,
+        total_files=0,
+        total_directories=0,
+        languages=[],
+        frameworks=[],
+        important_files=[],
+        missing_recommended_files=list(RECOMMENDED_FILES),
+        likely_test_paths=[],
+        likely_source_paths=[],
+        risks=[f"Project path does not exist or is not a directory: {path}"],
+        recommendations=["Run `wintersolve scan` with a valid project directory."],
     )
+
+
+def _looks_like_test_path(relative_path: str) -> bool:
+    normalized = relative_path.lower()
+    name = Path(relative_path).name.lower()
+    suffix = Path(relative_path).suffix.lower()
+    return (
+        normalized in {"test", "tests", "spec", "__tests__"}
+        or normalized.startswith(("tests/", "test/", "spec/", "__tests__/"))
+        or "/tests/" in normalized
+        or "/__tests__/" in normalized
+        or (name.startswith("test_") and suffix in TESTABLE_EXTENSIONS)
+        or name.endswith(("_test.py", "_test.go", ".test.js", ".test.ts", ".test.tsx"))
+        or name.endswith((".spec.js", ".spec.ts", ".spec.tsx", "_spec.rb"))
+    )
+
+
+def _looks_like_source_path(relative_dir: str) -> bool:
+    parts = relative_dir.split("/")
+    return parts[0] in SOURCE_ROOT_NAMES and len(parts) <= MAX_SOURCE_PATH_DEPTH
 
 
 def _build_risks(
     total_files: int,
     frameworks: list[str],
-    important_files: list[str],
     missing_recommended_files: list[str],
     likely_test_paths: list[str],
 ) -> list[str]:
     risks: list[str] = []
-
     if total_files == 0:
         risks.append("No files were found in the project directory.")
     if not frameworks:
         risks.append("No common project or framework markers were detected.")
-    if "README.md" not in important_files:
+    if "README.md" in missing_recommended_files:
         risks.append("No README.md was found, so onboarding may be difficult.")
     if "SECURITY.md" in missing_recommended_files:
         risks.append("No SECURITY.md was found for vulnerability reporting guidance.")
     if not likely_test_paths:
         risks.append("No obvious test files or test directories were detected.")
-
-    return risks or ["No major repository health risks were detected by the basic scan."]
+    return risks
 
 
 def _build_recommendations(
@@ -213,23 +256,16 @@ def _build_recommendations(
     missing_recommended_files: list[str],
     likely_test_paths: list[str],
 ) -> list[str]:
-    recommendations: list[str] = []
-
-    for file in missing_recommended_files:
-        recommendations.append(f"Add {file} to improve project trust and maintainability.")
+    recommendations = [
+        f"Add {name} to improve project trust and maintainability."
+        for name in missing_recommended_files
+    ]
     if not likely_test_paths:
         recommendations.append("Add or document tests so contributors can verify changes.")
-    if not frameworks:
+    if frameworks:
+        recommendations.append(RECOMMEND_DOCUMENT_COMMANDS)
+    else:
         recommendations.append(
             "Add clear setup metadata such as pyproject.toml, package.json, go.mod, or Cargo.toml."
         )
-    if frameworks:
-        recommendations.append(RECOMMEND_DOCUMENT_COMMANDS)
-
-    return recommendations or [
-        "Keep documentation, tests, and project metadata current as the project grows."
-    ]
-
-
-def _to_posix(path: Path) -> str:
-    return path.as_posix()
+    return recommendations

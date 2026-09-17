@@ -1,29 +1,63 @@
 # Release Process
 
-This guide describes the expected release flow for WinterSolve maintainers.
+Releases are cut from `main` by pushing a `vX.Y.Z` tag. The `Release` workflow
+builds the package, checks the tag against `wintersolve.__version__`, publishes
+to PyPI with trusted publishing, and creates a GitHub release with generated
+notes and the built artifacts attached.
 
-## Pre-Release Checklist
+## One-time setup (before the first release)
 
-- Confirm `CHANGELOG.md` has an entry for the release.
-- Confirm `pyproject.toml` and `src/wintersolve/__init__.py` use the same version.
-- Run `python -m ruff check .`.
-- Run `python -m ruff format --check .`.
-- Run `python -m pytest`.
-- From `src/`, run `python -m mypy wintersolve`.
-- Run `python -m build`.
-- Run `python -m twine check dist/*`.
+1. **Create the PyPI project link.** On <https://pypi.org/manage/account/publishing/>
+   add a *pending* trusted publisher:
+   - PyPI project name: `wintersolve`
+   - Owner: `harshitkrhere`, repository: `WinterSolve`
+   - Workflow name: `release.yml`
+   - Environment name: `release`
+2. **Create the `release` environment** in the GitHub repository settings
+   (Settings → Environments → New environment → `release`). Optionally add
+   yourself as a required reviewer so a tag push cannot publish without a click.
+3. Nothing else: no API tokens, no secrets.
 
-## Release Steps
+## Every release
 
-1. Update version and changelog.
-2. Open a pull request with the release preparation changes.
-3. Merge after CI passes.
-4. Create and push a tag such as `v0.2.0`.
-5. Let the release workflow build artifacts and publish through trusted publishing.
-6. Verify the GitHub release notes and published package metadata.
+1. Update `src/wintersolve/__init__.py` (`__version__`) and `CITATION.cff`
+   (`version`, `date-released`). `pyproject.toml` reads the version from the
+   package, so it needs no edit.
+2. Move the `Unreleased` items in `CHANGELOG.md` under the new version heading.
+3. Run the full gate locally:
 
-## Post-Release
+   ```bash
+   ruff check . && ruff format --check . && mypy && pytest
+   python -m build && python -m twine check --strict dist/*
+   ```
 
-- Start a new `Unreleased` section in `CHANGELOG.md`.
-- Confirm install instructions still work from a clean environment.
-- Open follow-up issues for any release problems.
+4. Open a pull request with the release preparation, merge it after CI passes.
+5. Tag and push:
+
+   ```bash
+   git tag -a v0.3.0 -m "WinterSolve 0.3.0"
+   git push origin v0.3.0
+   ```
+
+6. Watch the `Release` workflow. When it finishes, confirm:
+   - <https://pypi.org/project/wintersolve/> shows the new version;
+   - the GitHub release has the wheel and sdist attached;
+   - `pipx install wintersolve==X.Y.Z` works in a clean shell.
+
+## After the release
+
+- Start a fresh `## [Unreleased]` section in `CHANGELOG.md`.
+- Add the PyPI badge to the README if this was the first release:
+
+  ```markdown
+  [![PyPI](https://img.shields.io/pypi/v/wintersolve.svg)](https://pypi.org/project/wintersolve/)
+  ```
+
+- Announce it where the users are (a short post with the sample report works
+  better than a feature list).
+
+## Versioning
+
+Semantic versioning. While the major version is `0`, minor releases may change
+command output wording; the JSON `schema_version` is bumped whenever fields are
+renamed or removed.

@@ -1,68 +1,84 @@
-# Installing WinterSolve
+# Installation
 
-WinterSolve should be used with the clean command prefix:
+WinterSolve needs Python 3.10 or newer and nothing else. It has two small
+runtime dependencies (`typer` and `rich`) and never makes network calls.
 
-```powershell
-wintersolve brain .
-wintersolve scan .
-wintersolve explain src/wintersolve/cli.py
+## Recommended: pipx
+
+[pipx](https://pipx.pypa.io/) installs the `wintersolve` command in its own
+environment and puts it on your PATH:
+
+```bash
+pipx install wintersolve
 ```
 
-## Option 1: Install the Clean Windows Command
+Upgrade later with `pipx upgrade wintersolve`.
 
-From the project folder:
+## pip
 
-```powershell
-.\scripts\install-wintersolve-command.ps1
+```bash
+python -m pip install wintersolve
 ```
 
-Open a new PowerShell window, then run:
+Optional extras:
 
-```powershell
-wintersolve brain .
+| Extra | Adds | When |
+| --- | --- | --- |
+| `wintersolve[security]` | Bandit | You want Bandit's Python findings inside `wintersolve brain`. |
+| `wintersolve[ai]` | OpenAI and Anthropic SDKs | You are building on the optional provider examples. |
+| `wintersolve[dev]` | pytest, ruff, mypy, bandit, pre-commit | You are contributing. |
+
+## Latest development version
+
+```bash
+pipx install git+https://github.com/harshitkrhere/WinterSolve.git
 ```
 
-This creates a local `wintersolve` command for your Windows user account.
+## From a clone (contributors)
 
-## Option 2: Editable Python Install
-
-If Python and pip are installed:
-
-```powershell
-python -m pip install -e .
-wintersolve brain .
+```bash
+git clone https://github.com/harshitkrhere/WinterSolve.git
+cd WinterSolve
+python -m venv .venv
+source .venv/bin/activate        # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+wintersolve --version
 ```
 
-## Development Fallback: PowerShell Helper
+The editable install means code changes take effect immediately.
 
-From the project folder:
+## Run without installing
 
-```powershell
-.\scripts\wintersolve.ps1 scan .
+From a clone, with no install at all:
+
+```bash
+PYTHONPATH=src python -m wintersolve scan .
 ```
 
-This helper is only for development fallback. Public docs and examples should use `wintersolve <command>`.
-
-## Development Fallback: Python Module
-
-If Python is installed:
+Windows PowerShell:
 
 ```powershell
-$env:PYTHONPATH="src"; python -m wintersolve scan .
+$env:PYTHONPATH = "src"; python -m wintersolve scan .
 ```
 
-## Common Problems
+The helper `scripts/wintersolve.ps1` does the same thing; `scripts/install-wintersolve-command.ps1`
+registers a `wintersolve` shim for your Windows user account that points at
+the clone. Both are conveniences for development, not the supported install path.
 
-### Python was not found
+## Troubleshooting
 
-Install Python from the official Python website, or run `.\scripts\install-wintersolve-command.ps1` if you are running WinterSolve inside Codex.
+**`wintersolve` is not recognized / command not found.**
+The install location is not on your PATH. `pipx ensurepath` fixes this for pipx
+installs; for pip, `python -m wintersolve ...` always works.
 
-### `wintersolve` is not recognized
+**`python` was not found (Windows).**
+Install Python from <https://www.python.org/downloads/> and tick "Add python.exe
+to PATH", or use the `py` launcher: `py -m pip install wintersolve`.
 
-The command has not been installed into your shell path yet. Run:
+**Bandit is slow on my repository.**
+Run `wintersolve brain . --no-bandit`. Bandit is only invoked for Python files,
+skips virtual environments and dependency folders, and is capped at two minutes.
 
-```powershell
-.\scripts\install-wintersolve-command.ps1
-```
-
-Then open a new PowerShell window.
+**The report shows `[id]` style paths oddly in my terminal.**
+It should not: reports are printed with terminal markup disabled. If you see
+otherwise, please open an issue with the output.

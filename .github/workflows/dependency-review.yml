@@ -13,8 +13,8 @@ jobs:
     name: Dependency Review
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Review dependencies
-        uses: actions/dependency-review-action@v4
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v5

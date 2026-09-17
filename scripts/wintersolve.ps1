@@ -1,3 +1,8 @@
+# Runs WinterSolve from this clone without installing it. Development helper;
+# the supported install is `pipx install wintersolve` (see docs/INSTALLATION.md).
+#
+#   .\scripts\wintersolve.ps1 brain .
+
 param(
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]] $Args
@@ -6,19 +11,14 @@ param(
 $root = Split-Path -Parent $PSScriptRoot
 $env:PYTHONPATH = Join-Path $root "src"
 
-$systemPython = Get-Command python -ErrorAction SilentlyContinue
-if ($systemPython) {
-    & $systemPython.Source -m wintersolve @Args
-    exit $LASTEXITCODE
+$python = Get-Command python -ErrorAction SilentlyContinue
+if (-not $python) {
+    $python = Get-Command py -ErrorAction SilentlyContinue
+}
+if (-not $python) {
+    Write-Host "Python was not found. Install it from https://www.python.org/downloads/ and try again."
+    exit 1
 }
 
-$pythonLauncher = Get-Command py -ErrorAction SilentlyContinue
-if ($pythonLauncher) {
-    & $pythonLauncher.Source -m wintersolve @Args
-    exit $LASTEXITCODE
-}
-
-Write-Host "WinterSolve needs Python to run, but Python was not found."
-Write-Host "Install Python from https://www.python.org/downloads/ and then run this command again:"
-Write-Host ".\scripts\wintersolve.ps1 scan ."
-exit 1
+& $python.Source -m wintersolve @Args
+exit $LASTEXITCODE

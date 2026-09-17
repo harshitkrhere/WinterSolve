@@ -1,4 +1,11 @@
-"""Optional AI provider examples for WinterSolve integrations."""
+"""Optional AI provider examples.
+
+These are reference implementations, not a requirement: every WinterSolve
+command works offline. Client libraries are imported lazily so the package
+installs and runs without them; ``pip install "wintersolve[ai]"`` adds them.
+Prompts must be redacted (see ``wintersolve.modules.security.redact_secrets``)
+before they reach a provider.
+"""
 
 from __future__ import annotations
 
@@ -24,7 +31,7 @@ class OpenAIProvider:
 
     def complete(self, prompt: str) -> ProviderResponse:
         try:
-            from openai import OpenAI  # type: ignore[import-not-found]  # noqa: PLC0415
+            from openai import OpenAI  # noqa: PLC0415 - optional dependency
         except ImportError as error:
             raise RuntimeError(
                 "OpenAI provider requires the optional 'openai' package. "
@@ -67,7 +74,7 @@ class AnthropicProvider:
 
     def complete(self, prompt: str) -> ProviderResponse:
         try:
-            from anthropic import Anthropic  # type: ignore[import-not-found]  # noqa: PLC0415
+            from anthropic import Anthropic  # noqa: PLC0415 - optional dependency
         except ImportError as error:
             raise RuntimeError(
                 "Anthropic provider requires the optional 'anthropic' package. "
@@ -102,4 +109,4 @@ def create_provider(provider_name: str, config: ProviderConfig) -> AIProvider:
         if not isinstance(config, AnthropicConfig):
             raise TypeError("anthropic provider requires AnthropicConfig.")
         return AnthropicProvider(config)
-    raise ValueError("Unknown provider: {provider_name}. Available: openai, anthropic")
+    raise ValueError(f"Unknown provider: {provider_name}. Available: openai, anthropic")

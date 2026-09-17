@@ -7,23 +7,26 @@ on:
   push:
     branches: ["main"]
 
-permissions:
-  contents: read
-  security-events: write
-  id-token: write
+# Scorecard refuses to publish results when the workflow grants write
+# permissions globally, so keep the top level read-only and grant the two
+# write scopes it needs on the job itself.
+permissions: read-all
 
 jobs:
   scorecard:
     name: Scorecard analysis
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
     steps:
-      - name: Checkout code
+      - name: Check out code
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Run Scorecard
-        uses: ossf/scorecard-action@v2.4.0
+        uses: ossf/scorecard-action@v2.4.3
         with:
           results_file: scorecard-results.sarif
           results_format: sarif
