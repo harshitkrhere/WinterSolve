@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Allow ``python -m wintersolve`` as an alternative to the ``wintersolve`` script."""
 
 from wintersolve.cli import main
 

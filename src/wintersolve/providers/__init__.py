@@ -1,4 +1,4 @@
-"""Optional AI provider extension points."""
+"""Optional AI provider extension points. Nothing here is required for offline use."""
 
 from wintersolve.providers.base import AIProvider, ProviderConfig, ProviderResponse
 from wintersolve.providers.examples import (
@@ -11,11 +11,11 @@ from wintersolve.providers.examples import (
 
 __all__ = [
     "AIProvider",
-    "ProviderConfig",
-    "ProviderResponse",
-    "OpenAIConfig",
-    "OpenAIProvider",
     "AnthropicConfig",
     "AnthropicProvider",
+    "OpenAIConfig",
+    "OpenAIProvider",
+    "ProviderConfig",
+    "ProviderResponse",
     "create_provider",
 ]

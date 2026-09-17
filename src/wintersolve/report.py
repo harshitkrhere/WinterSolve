@@ -1,6 +1,14 @@
+"""Render analyzer results as plain text, Markdown, or JSON.
+
+Renderers return strings and never print, so the same output can go to a
+terminal, a file, or a CI log without changes. Text output is deliberately
+plain (no colour codes) so it pastes cleanly into issues and pull requests.
+"""
+
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 
 from wintersolve.models import (
     ArchitectureSection,
@@ -14,17 +22,23 @@ from wintersolve.modules.explainer import FileExplanation
 from wintersolve.modules.reviewer import ReviewResult
 from wintersolve.modules.scanner import ScanResult
 
+MAX_NOTABLE_FILES_SHOWN = 4
+
+
+# --------------------------------------------------------------------------- scan
+
 
 def render_scan_report(result: ScanResult, output_format: str = "text") -> str:
+    if output_format == "json":
+        return _to_json(result.to_dict())
     if output_format == "markdown":
-        return _render_markdown(result)
-    return _render_text(result)
+        return _render_scan_markdown(result)
+    return _render_scan_text(result)
 
 
-def _render_text(result: ScanResult) -> str:
+def _render_scan_text(result: ScanResult) -> str:
     lines = [
-        "WinterSolve Repo Scan",
-        "=" * 21,
+        _title("WinterSolve Repo Scan"),
         f"Path: {result.path}",
         f"Files: {result.total_files}",
         f"Directories: {result.total_directories}",
@@ -40,7 +54,14 @@ def _render_text(result: ScanResult) -> str:
     return "\n".join(lines).rstrip()
 
 
-def _render_markdown(result: ScanResult) -> str:
+def _render_scan_markdown(result: ScanResult) -> str:
+    header = [
+        "# WinterSolve Repo Scan",
+        "",
+        f"- Path: `{result.path}`",
+        f"- Files: {result.total_files}",
+        f"- Directories: {result.total_directories}",
+    ]
     sections = [
         _markdown_section("Languages", _format_pairs(result.languages)),
         _markdown_section("Detected Stack", result.frameworks),
@@ -50,105 +71,15 @@ def _render_markdown(result: ScanResult) -> str:
         _markdown_section("Risks", result.risks),
         _markdown_section("Recommendations", result.recommendations),
     ]
-    lines = [
-        "# WinterSolve Repo Scan",
-        "",
-        f"- Path: `{result.path}`",
-        f"- Files: {result.total_files}",
-        f"- Directories: {result.total_directories}",
-        "",
-    ]
-    return "\n\n".join(["\n".join(lines).rstrip(), *sections]).rstrip()
+    return "\n\n".join(["\n".join(header), *sections]).rstrip()
 
 
-def _section(title: str, items: list[str]) -> str:
-    lines = [f"{title}:"]
-    if not items:
-        lines.append("  - None detected")
-    else:
-        lines.extend(f"  - {item}" for item in items)
-    return "\n".join(lines)
-
-
-def _markdown_section(title: str, items: list[str]) -> str:
-    lines = [f"## {title}"]
-    if not items:
-        lines.append("")
-        lines.append("- None detected")
-    else:
-        lines.append("")
-        lines.extend(f"- {item}" for item in items)
-    return "\n".join(lines)
-
-
-def _format_pairs(pairs: list[tuple[str, int]]) -> list[str]:
-    return [f"{name}: {count}" for name, count in pairs]
-
-
-def render_explanation(result: FileExplanation) -> str:
-    return "\n".join(
-        [
-            "WinterSolve File Explanation",
-            "=" * 29,
-            f"Path: {result.path}",
-            f"Language: {result.language}",
-            f"Lines: {result.line_count}",
-            "",
-            _section("Summary", result.summary),
-            _section("Symbols and sections", result.symbols),
-            _section("Imports and dependencies", result.imports),
-            _section("Risks", result.risks),
-        ]
-    ).rstrip()
-
-
-def render_debug_analysis(result: DebugAnalysis) -> str:
-    return "\n".join(
-        [
-            "WinterSolve Debug Analysis",
-            "=" * 27,
-            f"Source: {result.source}",
-            f"Likely language: {result.likely_language}",
-            "",
-            _section("Signals", result.signals),
-            _section("Likely causes", result.likely_causes),
-            _section("Next steps", result.next_steps),
-        ]
-    ).rstrip()
-
-
-def render_docs_suggestions(result: DocsSuggestion, include_draft: bool = False) -> str:
-    lines = [
-        "WinterSolve Docs Assistant",
-        "=" * 26,
-        f"Path: {result.path}",
-        "",
-        _section("Missing README sections", result.missing_sections),
-        _section("Suggestions", result.suggestions),
-    ]
-    if include_draft:
-        lines.extend(["", "README Draft:", "-------------", result.readme_draft])
-    return "\n".join(lines).rstrip()
-
-
-def render_review_result(result: ReviewResult) -> str:
-    return "\n".join(
-        [
-            "WinterSolve Review Assistant",
-            "=" * 28,
-            f"Path: {result.path}",
-            f"Git detected: {'yes' if result.git_available else 'no'}",
-            "",
-            _section("Changed files", result.changed_files),
-            _section("Risks", result.risks),
-            _section("Checklist", result.checklist),
-        ]
-    ).rstrip()
+# -------------------------------------------------------------------------- brain
 
 
 def render_brain_report(result: BrainReport, output_format: str = "text") -> str:
     if output_format == "json":
-        return json.dumps(result.to_dict(), indent=2, sort_keys=True)
+        return _to_json(result.to_dict())
     if output_format == "markdown":
         return _render_brain_markdown(result)
     return _render_brain_text(result)
@@ -156,11 +87,10 @@ def render_brain_report(result: BrainReport, output_format: str = "text") -> str
 
 def _render_brain_text(result: BrainReport) -> str:
     lines = [
-        "WinterSolve Repo Brain",
-        "=" * 22,
+        _title("WinterSolve Repo Brain"),
         f"Project: {result.identity.name}",
         f"Path: {result.identity.path}",
-        f"Offline mode: {'yes' if result.identity.offline_mode else 'no'}",
+        f"Offline mode: {_yes_no(result.identity.offline_mode)}",
         "",
         _section("Languages", _format_pairs(result.languages)),
         _section("Detected stack", result.stack),
@@ -178,6 +108,13 @@ def _render_brain_text(result: BrainReport) -> str:
 
 
 def _render_brain_markdown(result: BrainReport) -> str:
+    header = [
+        "# WinterSolve Repo Brain",
+        "",
+        f"- Project: `{result.identity.name}`",
+        f"- Path: `{result.identity.path}`",
+        f"- Offline mode: {_yes_no(result.identity.offline_mode)}",
+    ]
     sections = [
         _markdown_section("Languages", _format_pairs(result.languages)),
         _markdown_section("Detected Stack", result.stack),
@@ -191,26 +128,108 @@ def _render_brain_markdown(result: BrainReport) -> str:
         _markdown_section("Recommendations", result.recommendations),
         _markdown_section("Next Actions", result.next_actions),
     ]
-    header = [
-        "# WinterSolve Repo Brain",
-        "",
-        f"- Project: `{result.identity.name}`",
-        f"- Path: `{result.identity.path}`",
-        f"- Offline mode: {'yes' if result.identity.offline_mode else 'no'}",
-    ]
     return "\n\n".join(["\n".join(header), *sections]).rstrip()
 
 
-def _format_commands(commands: list[CommandCandidate]) -> list[str]:
+# ------------------------------------------------------------------ other commands
+
+
+def render_explanation(result: FileExplanation) -> str:
+    lines = [
+        _title("WinterSolve File Explanation"),
+        f"Path: {result.path}",
+        f"Language: {result.language}",
+        f"Lines: {result.line_count}",
+        "",
+        _section("Summary", result.summary),
+    ]
+    if result.errors:
+        lines.append(_section("Parse errors", result.errors))
+    lines.extend(
+        [
+            _section("Symbols and sections", result.symbols),
+            _section("Imports and dependencies", result.imports),
+            _section("Risks", result.risks),
+        ]
+    )
+    return "\n".join(lines).rstrip()
+
+
+def render_debug_analysis(result: DebugAnalysis) -> str:
+    lines = [
+        _title("WinterSolve Debug Analysis"),
+        f"Source: {result.source}",
+        f"Likely language: {result.likely_language}",
+        "",
+        _section("Signals", result.signals),
+        _section("Likely causes", result.likely_causes),
+        _section("Next steps", result.next_steps),
+    ]
+    return "\n".join(lines).rstrip()
+
+
+def render_docs_suggestions(result: DocsSuggestion, include_draft: bool = False) -> str:
+    lines = [
+        _title("WinterSolve Docs Assistant"),
+        f"Path: {result.path}",
+        "",
+        _section("Missing README sections", result.missing_sections),
+        _section("Suggestions", result.suggestions),
+    ]
+    if include_draft:
+        lines.extend(["", "README Draft:", "-------------", result.readme_draft])
+    return "\n".join(lines).rstrip()
+
+
+def render_review_result(result: ReviewResult) -> str:
+    lines = [
+        _title("WinterSolve Review Assistant"),
+        f"Path: {result.path}",
+        f"Git detected: {_yes_no(result.git_available)}",
+        "",
+        _section("Changed files", result.changed_files),
+        _section("Risks", result.risks),
+        _section("Checklist", result.checklist),
+    ]
+    return "\n".join(lines).rstrip()
+
+
+# ------------------------------------------------------------------------ helpers
+
+
+def _title(text: str) -> str:
+    return f"{text}\n{'=' * len(text)}"
+
+
+def _yes_no(value: bool) -> str:
+    return "yes" if value else "no"
+
+
+def _section(title: str, items: Sequence[str]) -> str:
+    bullets = [f"  - {item}" for item in items] or ["  - None detected"]
+    return "\n".join([f"{title}:", *bullets])
+
+
+def _markdown_section(title: str, items: Sequence[str]) -> str:
+    bullets = [f"- {item}" for item in items] or ["- None detected"]
+    return "\n".join([f"## {title}", "", *bullets])
+
+
+def _format_pairs(pairs: Sequence[tuple[str, int]]) -> list[str]:
+    return [f"{name}: {count}" for name, count in pairs]
+
+
+def _format_commands(commands: Sequence[CommandCandidate]) -> list[str]:
     return [
         f"{command.name}: `{command.command}` ({command.source}, {command.confidence})"
         for command in commands
     ]
 
 
-def _format_architecture(sections: list[ArchitectureSection]) -> list[str]:
+def _format_architecture(sections: Sequence[ArchitectureSection]) -> list[str]:
     return [
-        f"{section.path}: {section.purpose}; notable: {', '.join(section.notable_files[:4])}"
+        f"{section.path}: {section.purpose}; "
+        f"notable: {', '.join(section.notable_files[:MAX_NOTABLE_FILES_SHOWN])}"
         for section in sections
     ]
 
@@ -218,12 +237,16 @@ def _format_architecture(sections: list[ArchitectureSection]) -> list[str]:
 def _format_security(security: SecuritySummary) -> list[str]:
     items = [
         f"Status: {security.status}",
-        f"Offline by default: {'yes' if security.offline_by_default else 'no'}",
+        f"Offline by default: {_yes_no(security.offline_by_default)}",
         f"Files checked: {security.files_checked}",
+        *security.notes,
     ]
-    items.extend(security.notes)
     items.extend(
         f"{finding.severity}: {finding.kind} in {finding.path}:{finding.line} -> {finding.evidence}"
         for finding in security.findings
     )
     return items
+
+
+def _to_json(data: object) -> str:
+    return json.dumps(data, indent=2, sort_keys=True)
