@@ -52,7 +52,7 @@ Offline mode: yes
 
 Languages:
   - Python: 38
-  - Markdown: 27
+  - Markdown: 29
   - PowerShell: 2
 Detected stack:
   - GitHub Actions
@@ -70,6 +70,7 @@ Documentation health:
 Detected commands:
   - install editable: `python -m pip install -e .` (pyproject.toml, medium)
   - test: `python -m pytest` (pyproject.toml, medium)
+  - lint: `pre-commit run --all-files` (.pre-commit-config.yaml, medium)
   - pipx: `pipx install wintersolve` (README.md, medium)
 Architecture map:
   - docs: Project documentation; notable: docs/ARCHITECTURE.md, docs/COMMANDS.md, ...
@@ -77,7 +78,7 @@ Architecture map:
   - tests: Automated tests; notable: tests/conftest.py, tests/test_cli.py, ...
 Security and privacy:
   - Status: clear
-  - Files checked: 83
+  - Files checked: 85
   - Secret-like values are redacted before they appear in any report.
   - Bandit ran on Python files (medium and high severity): 0 issue(s).
 Risks:

@@ -6,8 +6,8 @@ authors:
   - name: "WinterSolve Contributors"
 repository-code: "https://github.com/harshitkrhere/WinterSolve"
 license: MIT
-version: 0.3.0
-date-released: 2026-09-17
+version: 0.3.1
+date-released: 2026-09-19
 keywords:
   - developer-tools
   - static-analysis
