@@ -33,7 +33,9 @@
     {
       "name": "examples",
       "notable_files": [
+        "examples/README.md",
         "examples/github-action.yml",
+        "examples/sample-reports/wintersolve-repo-brain.json",
         "examples/sample-reports/wintersolve-repo-brain.md"
       ],
       "path": "examples",
@@ -103,6 +105,12 @@
       "source": "pyproject.toml"
     },
     {
+      "command": "pre-commit run --all-files",
+      "confidence": "medium",
+      "name": "lint",
+      "source": ".pre-commit-config.yaml"
+    },
+    {
       "command": "pipx install wintersolve",
       "confidence": "medium",
       "name": "pipx",
@@ -137,7 +145,7 @@
       "name": "Python"
     },
     {
-      "files": 27,
+      "files": 29,
       "name": "Markdown"
     },
     {
@@ -156,7 +164,7 @@
   "risks": [],
   "schema_version": 1,
   "security": {
-    "files_checked": 82,
+    "files_checked": 85,
     "findings": [],
     "notes": [
       "Secret-like values are redacted before they appear in any report.",

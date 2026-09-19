@@ -8,6 +8,6 @@ dataclasses you can render or serialise however you like.
 from wintersolve.logging_config import configure_logging, get_logger, set_log_level
 
 # Single source of truth for the version; pyproject.toml reads it at build time.
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 __all__ = ["__version__", "configure_logging", "get_logger", "set_log_level"]

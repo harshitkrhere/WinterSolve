@@ -6,6 +6,8 @@ All notable changes to WinterSolve are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-19
+
 ### Added
 
 - Command detection for pre-commit, tox, nox, just, and Taskfile marker files.
@@ -109,5 +111,6 @@ Internal milestone (never published).
 - Initial offline-first Repo Brain, scan, explain, debug, docs, review, and
   security workflows.
 
-[Unreleased]: https://github.com/harshitkrhere/WinterSolve/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/harshitkrhere/WinterSolve/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/harshitkrhere/WinterSolve/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/harshitkrhere/WinterSolve/releases/tag/v0.3.0

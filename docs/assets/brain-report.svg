@@ -1,4 +1,4 @@
-<svg class="rich-terminal" viewBox="0 0 1092 977.1999999999999" xmlns="http://www.w3.org/2000/svg">
+<svg class="rich-terminal" viewBox="0 0 1092 1001.5999999999999" xmlns="http://www.w3.org/2000/svg">
     <!-- Generated with Rich https://www.textualize.io -->
     <style>
 
@@ -19,191 +19,195 @@
         font-weight: 700;
     }
 
-    .terminal-1755958438-matrix {
+    .terminal-645194935-matrix {
         font-family: Fira Code, monospace;
         font-size: 20px;
         line-height: 24.4px;
         font-variant-east-asian: full-width;
     }
 
-    .terminal-1755958438-title {
+    .terminal-645194935-title {
         font-size: 18px;
         font-weight: bold;
         font-family: arial;
     }
 
-    .terminal-1755958438-r1 { fill: #98a84b;font-weight: bold }
-.terminal-1755958438-r2 { fill: #c5c8c6 }
-.terminal-1755958438-r3 { fill: #c5c8c6;font-weight: bold }
-.terminal-1755958438-r4 { fill: #868887 }
-.terminal-1755958438-r5 { fill: #68a0b3;font-weight: bold }
+    .terminal-645194935-r1 { fill: #98a84b;font-weight: bold }
+.terminal-645194935-r2 { fill: #c5c8c6 }
+.terminal-645194935-r3 { fill: #c5c8c6;font-weight: bold }
+.terminal-645194935-r4 { fill: #868887 }
+.terminal-645194935-r5 { fill: #68a0b3;font-weight: bold }
     </style>
 
     <defs>
-    <clipPath id="terminal-1755958438-clip-terminal">
-      <rect x="0" y="0" width="1072.6" height="926.1999999999999" />
+    <clipPath id="terminal-645194935-clip-terminal">
+      <rect x="0" y="0" width="1072.6" height="950.5999999999999" />
     </clipPath>
-    <clipPath id="terminal-1755958438-line-0">
+    <clipPath id="terminal-645194935-line-0">
     <rect x="0" y="1.5" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-1">
+<clipPath id="terminal-645194935-line-1">
     <rect x="0" y="25.9" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-2">
+<clipPath id="terminal-645194935-line-2">
     <rect x="0" y="50.3" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-3">
+<clipPath id="terminal-645194935-line-3">
     <rect x="0" y="74.7" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-4">
+<clipPath id="terminal-645194935-line-4">
     <rect x="0" y="99.1" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-5">
+<clipPath id="terminal-645194935-line-5">
     <rect x="0" y="123.5" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-6">
+<clipPath id="terminal-645194935-line-6">
     <rect x="0" y="147.9" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-7">
+<clipPath id="terminal-645194935-line-7">
     <rect x="0" y="172.3" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-8">
+<clipPath id="terminal-645194935-line-8">
     <rect x="0" y="196.7" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-9">
+<clipPath id="terminal-645194935-line-9">
     <rect x="0" y="221.1" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-10">
+<clipPath id="terminal-645194935-line-10">
     <rect x="0" y="245.5" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-11">
+<clipPath id="terminal-645194935-line-11">
     <rect x="0" y="269.9" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-12">
+<clipPath id="terminal-645194935-line-12">
     <rect x="0" y="294.3" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-13">
+<clipPath id="terminal-645194935-line-13">
     <rect x="0" y="318.7" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-14">
+<clipPath id="terminal-645194935-line-14">
     <rect x="0" y="343.1" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-15">
+<clipPath id="terminal-645194935-line-15">
     <rect x="0" y="367.5" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-16">
+<clipPath id="terminal-645194935-line-16">
     <rect x="0" y="391.9" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-17">
+<clipPath id="terminal-645194935-line-17">
     <rect x="0" y="416.3" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-18">
+<clipPath id="terminal-645194935-line-18">
     <rect x="0" y="440.7" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-19">
+<clipPath id="terminal-645194935-line-19">
     <rect x="0" y="465.1" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-20">
+<clipPath id="terminal-645194935-line-20">
     <rect x="0" y="489.5" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-21">
+<clipPath id="terminal-645194935-line-21">
     <rect x="0" y="513.9" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-22">
+<clipPath id="terminal-645194935-line-22">
     <rect x="0" y="538.3" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-23">
+<clipPath id="terminal-645194935-line-23">
     <rect x="0" y="562.7" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-24">
+<clipPath id="terminal-645194935-line-24">
     <rect x="0" y="587.1" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-25">
+<clipPath id="terminal-645194935-line-25">
     <rect x="0" y="611.5" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-26">
+<clipPath id="terminal-645194935-line-26">
     <rect x="0" y="635.9" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-27">
+<clipPath id="terminal-645194935-line-27">
     <rect x="0" y="660.3" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-28">
+<clipPath id="terminal-645194935-line-28">
     <rect x="0" y="684.7" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-29">
+<clipPath id="terminal-645194935-line-29">
     <rect x="0" y="709.1" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-30">
+<clipPath id="terminal-645194935-line-30">
     <rect x="0" y="733.5" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-31">
+<clipPath id="terminal-645194935-line-31">
     <rect x="0" y="757.9" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-32">
+<clipPath id="terminal-645194935-line-32">
     <rect x="0" y="782.3" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-33">
+<clipPath id="terminal-645194935-line-33">
     <rect x="0" y="806.7" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-34">
+<clipPath id="terminal-645194935-line-34">
     <rect x="0" y="831.1" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-35">
+<clipPath id="terminal-645194935-line-35">
     <rect x="0" y="855.5" width="1073.6" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1755958438-line-36">
+<clipPath id="terminal-645194935-line-36">
     <rect x="0" y="879.9" width="1073.6" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-645194935-line-37">
+    <rect x="0" y="904.3" width="1073.6" height="24.65"/>
             </clipPath>
     </defs>
 
-    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="1090" height="975.2" rx="8"/><text class="terminal-1755958438-title" fill="#c5c8c6" text-anchor="middle" x="545" y="27">wintersolve&#160;brain&#160;.</text>
+    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="1090" height="999.6" rx="8"/><text class="terminal-645194935-title" fill="#c5c8c6" text-anchor="middle" x="545" y="27">wintersolve&#160;brain&#160;.</text>
             <g transform="translate(26,22)">
             <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
             <circle cx="22" cy="0" r="7" fill="#febc2e"/>
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
         
-    <g transform="translate(9, 41)" clip-path="url(#terminal-1755958438-clip-terminal)">
+    <g transform="translate(9, 41)" clip-path="url(#terminal-645194935-clip-terminal)">
     
-    <g class="terminal-1755958438-matrix">
-    <text class="terminal-1755958438-r1" x="0" y="20" textLength="256.2" clip-path="url(#terminal-1755958438-line-0)">$&#160;wintersolve&#160;brain&#160;.</text><text class="terminal-1755958438-r2" x="1073.6" y="20" textLength="12.2" clip-path="url(#terminal-1755958438-line-0)">
-</text><text class="terminal-1755958438-r3" x="0" y="44.4" textLength="268.4" clip-path="url(#terminal-1755958438-line-1)">WinterSolve&#160;Repo&#160;Brain</text><text class="terminal-1755958438-r2" x="1073.6" y="44.4" textLength="12.2" clip-path="url(#terminal-1755958438-line-1)">
-</text><text class="terminal-1755958438-r4" x="0" y="68.8" textLength="268.4" clip-path="url(#terminal-1755958438-line-2)">======================</text><text class="terminal-1755958438-r2" x="1073.6" y="68.8" textLength="12.2" clip-path="url(#terminal-1755958438-line-2)">
-</text><text class="terminal-1755958438-r2" x="0" y="93.2" textLength="244" clip-path="url(#terminal-1755958438-line-3)">Project:&#160;WinterSolve</text><text class="terminal-1755958438-r2" x="1073.6" y="93.2" textLength="12.2" clip-path="url(#terminal-1755958438-line-3)">
-</text><text class="terminal-1755958438-r2" x="0" y="117.6" textLength="207.4" clip-path="url(#terminal-1755958438-line-4)">Offline&#160;mode:&#160;yes</text><text class="terminal-1755958438-r2" x="1073.6" y="117.6" textLength="12.2" clip-path="url(#terminal-1755958438-line-4)">
-</text><text class="terminal-1755958438-r2" x="1073.6" y="142" textLength="12.2" clip-path="url(#terminal-1755958438-line-5)">
-</text><text class="terminal-1755958438-r5" x="0" y="166.4" textLength="122" clip-path="url(#terminal-1755958438-line-6)">Languages:</text><text class="terminal-1755958438-r2" x="1073.6" y="166.4" textLength="12.2" clip-path="url(#terminal-1755958438-line-6)">
-</text><text class="terminal-1755958438-r4" x="0" y="190.8" textLength="48.8" clip-path="url(#terminal-1755958438-line-7)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="190.8" textLength="122" clip-path="url(#terminal-1755958438-line-7)">Python:&#160;38</text><text class="terminal-1755958438-r2" x="1073.6" y="190.8" textLength="12.2" clip-path="url(#terminal-1755958438-line-7)">
-</text><text class="terminal-1755958438-r4" x="0" y="215.2" textLength="48.8" clip-path="url(#terminal-1755958438-line-8)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="215.2" textLength="146.4" clip-path="url(#terminal-1755958438-line-8)">Markdown:&#160;28</text><text class="terminal-1755958438-r2" x="1073.6" y="215.2" textLength="12.2" clip-path="url(#terminal-1755958438-line-8)">
-</text><text class="terminal-1755958438-r4" x="0" y="239.6" textLength="48.8" clip-path="url(#terminal-1755958438-line-9)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="239.6" textLength="158.6" clip-path="url(#terminal-1755958438-line-9)">PowerShell:&#160;2</text><text class="terminal-1755958438-r2" x="1073.6" y="239.6" textLength="12.2" clip-path="url(#terminal-1755958438-line-9)">
-</text><text class="terminal-1755958438-r5" x="0" y="264" textLength="183" clip-path="url(#terminal-1755958438-line-10)">Detected&#160;stack:</text><text class="terminal-1755958438-r2" x="1073.6" y="264" textLength="12.2" clip-path="url(#terminal-1755958438-line-10)">
-</text><text class="terminal-1755958438-r4" x="0" y="288.4" textLength="48.8" clip-path="url(#terminal-1755958438-line-11)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="288.4" textLength="170.8" clip-path="url(#terminal-1755958438-line-11)">GitHub&#160;Actions</text><text class="terminal-1755958438-r2" x="1073.6" y="288.4" textLength="12.2" clip-path="url(#terminal-1755958438-line-11)">
-</text><text class="terminal-1755958438-r4" x="0" y="312.8" textLength="48.8" clip-path="url(#terminal-1755958438-line-12)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="312.8" textLength="170.8" clip-path="url(#terminal-1755958438-line-12)">Python&#160;package</text><text class="terminal-1755958438-r2" x="1073.6" y="312.8" textLength="12.2" clip-path="url(#terminal-1755958438-line-12)">
-</text><text class="terminal-1755958438-r4" x="0" y="337.2" textLength="48.8" clip-path="url(#terminal-1755958438-line-13)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="337.2" textLength="122" clip-path="url(#terminal-1755958438-line-13)">pre-commit</text><text class="terminal-1755958438-r2" x="1073.6" y="337.2" textLength="12.2" clip-path="url(#terminal-1755958438-line-13)">
-</text><text class="terminal-1755958438-r5" x="0" y="361.6" textLength="170.8" clip-path="url(#terminal-1755958438-line-14)">Source&#160;layout:</text><text class="terminal-1755958438-r2" x="1073.6" y="361.6" textLength="12.2" clip-path="url(#terminal-1755958438-line-14)">
-</text><text class="terminal-1755958438-r4" x="0" y="386" textLength="48.8" clip-path="url(#terminal-1755958438-line-15)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="386" textLength="36.6" clip-path="url(#terminal-1755958438-line-15)">src</text><text class="terminal-1755958438-r2" x="1073.6" y="386" textLength="12.2" clip-path="url(#terminal-1755958438-line-15)">
-</text><text class="terminal-1755958438-r4" x="0" y="410.4" textLength="48.8" clip-path="url(#terminal-1755958438-line-16)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="410.4" textLength="183" clip-path="url(#terminal-1755958438-line-16)">src/wintersolve</text><text class="terminal-1755958438-r2" x="1073.6" y="410.4" textLength="12.2" clip-path="url(#terminal-1755958438-line-16)">
-</text><text class="terminal-1755958438-r4" x="0" y="434.8" textLength="48.8" clip-path="url(#terminal-1755958438-line-17)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="434.8" textLength="280.6" clip-path="url(#terminal-1755958438-line-17)">src/wintersolve/modules</text><text class="terminal-1755958438-r2" x="1073.6" y="434.8" textLength="12.2" clip-path="url(#terminal-1755958438-line-17)">
-</text><text class="terminal-1755958438-r4" x="0" y="459.2" textLength="48.8" clip-path="url(#terminal-1755958438-line-18)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="459.2" textLength="305" clip-path="url(#terminal-1755958438-line-18)">src/wintersolve/providers</text><text class="terminal-1755958438-r2" x="1073.6" y="459.2" textLength="12.2" clip-path="url(#terminal-1755958438-line-18)">
-</text><text class="terminal-1755958438-r4" x="0" y="483.6" textLength="48.8" clip-path="url(#terminal-1755958438-line-19)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="483.6" textLength="305" clip-path="url(#terminal-1755958438-line-19)">src/wintersolve/workflows</text><text class="terminal-1755958438-r2" x="1073.6" y="483.6" textLength="12.2" clip-path="url(#terminal-1755958438-line-19)">
-</text><text class="terminal-1755958438-r5" x="0" y="508" textLength="219.6" clip-path="url(#terminal-1755958438-line-20)">Detected&#160;commands:</text><text class="terminal-1755958438-r2" x="1073.6" y="508" textLength="12.2" clip-path="url(#terminal-1755958438-line-20)">
-</text><text class="terminal-1755958438-r4" x="0" y="532.4" textLength="48.8" clip-path="url(#terminal-1755958438-line-21)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="532.4" textLength="866.2" clip-path="url(#terminal-1755958438-line-21)">install&#160;editable:&#160;`python&#160;-m&#160;pip&#160;install&#160;-e&#160;.`&#160;(pyproject.toml,&#160;medium)</text><text class="terminal-1755958438-r2" x="1073.6" y="532.4" textLength="12.2" clip-path="url(#terminal-1755958438-line-21)">
-</text><text class="terminal-1755958438-r4" x="0" y="556.8" textLength="48.8" clip-path="url(#terminal-1755958438-line-22)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="556.8" textLength="597.8" clip-path="url(#terminal-1755958438-line-22)">test:&#160;`python&#160;-m&#160;pytest`&#160;(pyproject.toml,&#160;medium)</text><text class="terminal-1755958438-r2" x="1073.6" y="556.8" textLength="12.2" clip-path="url(#terminal-1755958438-line-22)">
-</text><text class="terminal-1755958438-r4" x="0" y="581.2" textLength="48.8" clip-path="url(#terminal-1755958438-line-23)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="581.2" textLength="634.4" clip-path="url(#terminal-1755958438-line-23)">pipx:&#160;`pipx&#160;install&#160;wintersolve`&#160;(README.md,&#160;medium)</text><text class="terminal-1755958438-r2" x="1073.6" y="581.2" textLength="12.2" clip-path="url(#terminal-1755958438-line-23)">
-</text><text class="terminal-1755958438-r4" x="0" y="605.6" textLength="48.8" clip-path="url(#terminal-1755958438-line-24)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="605.6" textLength="744.2" clip-path="url(#terminal-1755958438-line-24)">pytest:&#160;`pytest&#160;2&gt;&amp;1&#160;|&#160;wintersolve&#160;debug`&#160;(README.md,&#160;medium)</text><text class="terminal-1755958438-r2" x="1073.6" y="605.6" textLength="12.2" clip-path="url(#terminal-1755958438-line-24)">
-</text><text class="terminal-1755958438-r4" x="0" y="630" textLength="48.8" clip-path="url(#terminal-1755958438-line-25)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="630" textLength="768.6" clip-path="url(#terminal-1755958438-line-25)">python:&#160;`python&#160;-m&#160;pip&#160;install&#160;-e&#160;&quot;.[dev]&quot;`&#160;(README.md,&#160;medium)</text><text class="terminal-1755958438-r2" x="1073.6" y="630" textLength="12.2" clip-path="url(#terminal-1755958438-line-25)">
-</text><text class="terminal-1755958438-r5" x="0" y="654.4" textLength="256.2" clip-path="url(#terminal-1755958438-line-26)">Security&#160;and&#160;privacy:</text><text class="terminal-1755958438-r2" x="1073.6" y="654.4" textLength="12.2" clip-path="url(#terminal-1755958438-line-26)">
-</text><text class="terminal-1755958438-r4" x="0" y="678.8" textLength="48.8" clip-path="url(#terminal-1755958438-line-27)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="678.8" textLength="97.6" clip-path="url(#terminal-1755958438-line-27)">Status:&#160;</text><text class="terminal-1755958438-r1" x="146.4" y="678.8" textLength="61" clip-path="url(#terminal-1755958438-line-27)">clear</text><text class="terminal-1755958438-r2" x="1073.6" y="678.8" textLength="12.2" clip-path="url(#terminal-1755958438-line-27)">
-</text><text class="terminal-1755958438-r4" x="0" y="703.2" textLength="48.8" clip-path="url(#terminal-1755958438-line-28)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="703.2" textLength="280.6" clip-path="url(#terminal-1755958438-line-28)">Offline&#160;by&#160;default:&#160;yes</text><text class="terminal-1755958438-r2" x="1073.6" y="703.2" textLength="12.2" clip-path="url(#terminal-1755958438-line-28)">
-</text><text class="terminal-1755958438-r4" x="0" y="727.6" textLength="48.8" clip-path="url(#terminal-1755958438-line-29)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="727.6" textLength="207.4" clip-path="url(#terminal-1755958438-line-29)">Files&#160;checked:&#160;84</text><text class="terminal-1755958438-r2" x="1073.6" y="727.6" textLength="12.2" clip-path="url(#terminal-1755958438-line-29)">
-</text><text class="terminal-1755958438-r4" x="0" y="752" textLength="48.8" clip-path="url(#terminal-1755958438-line-30)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="752" textLength="793" clip-path="url(#terminal-1755958438-line-30)">Secret-like&#160;values&#160;are&#160;redacted&#160;before&#160;they&#160;appear&#160;in&#160;any&#160;report.</text><text class="terminal-1755958438-r2" x="1073.6" y="752" textLength="12.2" clip-path="url(#terminal-1755958438-line-30)">
-</text><text class="terminal-1755958438-r4" x="0" y="776.4" textLength="48.8" clip-path="url(#terminal-1755958438-line-31)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="776.4" textLength="805.2" clip-path="url(#terminal-1755958438-line-31)">Bandit&#160;ran&#160;on&#160;Python&#160;files&#160;(medium&#160;and&#160;high&#160;severity):&#160;0&#160;issue(s).</text><text class="terminal-1755958438-r2" x="1073.6" y="776.4" textLength="12.2" clip-path="url(#terminal-1755958438-line-31)">
-</text><text class="terminal-1755958438-r5" x="0" y="800.8" textLength="73.2" clip-path="url(#terminal-1755958438-line-32)">Risks:</text><text class="terminal-1755958438-r2" x="1073.6" y="800.8" textLength="12.2" clip-path="url(#terminal-1755958438-line-32)">
-</text><text class="terminal-1755958438-r4" x="0" y="825.2" textLength="48.8" clip-path="url(#terminal-1755958438-line-33)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="825.2" textLength="158.6" clip-path="url(#terminal-1755958438-line-33)">None&#160;detected</text><text class="terminal-1755958438-r2" x="1073.6" y="825.2" textLength="12.2" clip-path="url(#terminal-1755958438-line-33)">
-</text><text class="terminal-1755958438-r5" x="0" y="849.6" textLength="158.6" clip-path="url(#terminal-1755958438-line-34)">Next&#160;actions:</text><text class="terminal-1755958438-r2" x="1073.6" y="849.6" textLength="12.2" clip-path="url(#terminal-1755958438-line-34)">
-</text><text class="terminal-1755958438-r4" x="0" y="874" textLength="48.8" clip-path="url(#terminal-1755958438-line-35)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="874" textLength="634.4" clip-path="url(#terminal-1755958438-line-35)">Run&#160;the&#160;detected&#160;test&#160;command&#160;before&#160;making&#160;changes.</text><text class="terminal-1755958438-r2" x="1073.6" y="874" textLength="12.2" clip-path="url(#terminal-1755958438-line-35)">
-</text><text class="terminal-1755958438-r4" x="0" y="898.4" textLength="48.8" clip-path="url(#terminal-1755958438-line-36)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="898.4" textLength="829.6" clip-path="url(#terminal-1755958438-line-36)">Use&#160;`wintersolve&#160;explain&#160;&lt;file&gt;`&#160;on&#160;the&#160;most&#160;important&#160;source&#160;files.</text><text class="terminal-1755958438-r2" x="1073.6" y="898.4" textLength="12.2" clip-path="url(#terminal-1755958438-line-36)">
-</text><text class="terminal-1755958438-r4" x="0" y="922.8" textLength="48.8" clip-path="url(#terminal-1755958438-line-37)">&#160;&#160;-&#160;</text><text class="terminal-1755958438-r2" x="48.8" y="922.8" textLength="817.4" clip-path="url(#terminal-1755958438-line-37)">Use&#160;the&#160;architecture&#160;map&#160;as&#160;the&#160;first&#160;contributor&#160;onboarding&#160;guide.</text><text class="terminal-1755958438-r2" x="1073.6" y="922.8" textLength="12.2" clip-path="url(#terminal-1755958438-line-37)">
+    <g class="terminal-645194935-matrix">
+    <text class="terminal-645194935-r1" x="0" y="20" textLength="256.2" clip-path="url(#terminal-645194935-line-0)">$&#160;wintersolve&#160;brain&#160;.</text><text class="terminal-645194935-r2" x="1073.6" y="20" textLength="12.2" clip-path="url(#terminal-645194935-line-0)">
+</text><text class="terminal-645194935-r3" x="0" y="44.4" textLength="268.4" clip-path="url(#terminal-645194935-line-1)">WinterSolve&#160;Repo&#160;Brain</text><text class="terminal-645194935-r2" x="1073.6" y="44.4" textLength="12.2" clip-path="url(#terminal-645194935-line-1)">
+</text><text class="terminal-645194935-r4" x="0" y="68.8" textLength="268.4" clip-path="url(#terminal-645194935-line-2)">======================</text><text class="terminal-645194935-r2" x="1073.6" y="68.8" textLength="12.2" clip-path="url(#terminal-645194935-line-2)">
+</text><text class="terminal-645194935-r2" x="0" y="93.2" textLength="244" clip-path="url(#terminal-645194935-line-3)">Project:&#160;WinterSolve</text><text class="terminal-645194935-r2" x="1073.6" y="93.2" textLength="12.2" clip-path="url(#terminal-645194935-line-3)">
+</text><text class="terminal-645194935-r2" x="0" y="117.6" textLength="207.4" clip-path="url(#terminal-645194935-line-4)">Offline&#160;mode:&#160;yes</text><text class="terminal-645194935-r2" x="1073.6" y="117.6" textLength="12.2" clip-path="url(#terminal-645194935-line-4)">
+</text><text class="terminal-645194935-r2" x="1073.6" y="142" textLength="12.2" clip-path="url(#terminal-645194935-line-5)">
+</text><text class="terminal-645194935-r5" x="0" y="166.4" textLength="122" clip-path="url(#terminal-645194935-line-6)">Languages:</text><text class="terminal-645194935-r2" x="1073.6" y="166.4" textLength="12.2" clip-path="url(#terminal-645194935-line-6)">
+</text><text class="terminal-645194935-r4" x="0" y="190.8" textLength="48.8" clip-path="url(#terminal-645194935-line-7)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="190.8" textLength="122" clip-path="url(#terminal-645194935-line-7)">Python:&#160;38</text><text class="terminal-645194935-r2" x="1073.6" y="190.8" textLength="12.2" clip-path="url(#terminal-645194935-line-7)">
+</text><text class="terminal-645194935-r4" x="0" y="215.2" textLength="48.8" clip-path="url(#terminal-645194935-line-8)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="215.2" textLength="146.4" clip-path="url(#terminal-645194935-line-8)">Markdown:&#160;29</text><text class="terminal-645194935-r2" x="1073.6" y="215.2" textLength="12.2" clip-path="url(#terminal-645194935-line-8)">
+</text><text class="terminal-645194935-r4" x="0" y="239.6" textLength="48.8" clip-path="url(#terminal-645194935-line-9)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="239.6" textLength="158.6" clip-path="url(#terminal-645194935-line-9)">PowerShell:&#160;2</text><text class="terminal-645194935-r2" x="1073.6" y="239.6" textLength="12.2" clip-path="url(#terminal-645194935-line-9)">
+</text><text class="terminal-645194935-r5" x="0" y="264" textLength="183" clip-path="url(#terminal-645194935-line-10)">Detected&#160;stack:</text><text class="terminal-645194935-r2" x="1073.6" y="264" textLength="12.2" clip-path="url(#terminal-645194935-line-10)">
+</text><text class="terminal-645194935-r4" x="0" y="288.4" textLength="48.8" clip-path="url(#terminal-645194935-line-11)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="288.4" textLength="170.8" clip-path="url(#terminal-645194935-line-11)">GitHub&#160;Actions</text><text class="terminal-645194935-r2" x="1073.6" y="288.4" textLength="12.2" clip-path="url(#terminal-645194935-line-11)">
+</text><text class="terminal-645194935-r4" x="0" y="312.8" textLength="48.8" clip-path="url(#terminal-645194935-line-12)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="312.8" textLength="170.8" clip-path="url(#terminal-645194935-line-12)">Python&#160;package</text><text class="terminal-645194935-r2" x="1073.6" y="312.8" textLength="12.2" clip-path="url(#terminal-645194935-line-12)">
+</text><text class="terminal-645194935-r4" x="0" y="337.2" textLength="48.8" clip-path="url(#terminal-645194935-line-13)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="337.2" textLength="122" clip-path="url(#terminal-645194935-line-13)">pre-commit</text><text class="terminal-645194935-r2" x="1073.6" y="337.2" textLength="12.2" clip-path="url(#terminal-645194935-line-13)">
+</text><text class="terminal-645194935-r5" x="0" y="361.6" textLength="170.8" clip-path="url(#terminal-645194935-line-14)">Source&#160;layout:</text><text class="terminal-645194935-r2" x="1073.6" y="361.6" textLength="12.2" clip-path="url(#terminal-645194935-line-14)">
+</text><text class="terminal-645194935-r4" x="0" y="386" textLength="48.8" clip-path="url(#terminal-645194935-line-15)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="386" textLength="36.6" clip-path="url(#terminal-645194935-line-15)">src</text><text class="terminal-645194935-r2" x="1073.6" y="386" textLength="12.2" clip-path="url(#terminal-645194935-line-15)">
+</text><text class="terminal-645194935-r4" x="0" y="410.4" textLength="48.8" clip-path="url(#terminal-645194935-line-16)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="410.4" textLength="183" clip-path="url(#terminal-645194935-line-16)">src/wintersolve</text><text class="terminal-645194935-r2" x="1073.6" y="410.4" textLength="12.2" clip-path="url(#terminal-645194935-line-16)">
+</text><text class="terminal-645194935-r4" x="0" y="434.8" textLength="48.8" clip-path="url(#terminal-645194935-line-17)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="434.8" textLength="280.6" clip-path="url(#terminal-645194935-line-17)">src/wintersolve/modules</text><text class="terminal-645194935-r2" x="1073.6" y="434.8" textLength="12.2" clip-path="url(#terminal-645194935-line-17)">
+</text><text class="terminal-645194935-r4" x="0" y="459.2" textLength="48.8" clip-path="url(#terminal-645194935-line-18)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="459.2" textLength="305" clip-path="url(#terminal-645194935-line-18)">src/wintersolve/providers</text><text class="terminal-645194935-r2" x="1073.6" y="459.2" textLength="12.2" clip-path="url(#terminal-645194935-line-18)">
+</text><text class="terminal-645194935-r4" x="0" y="483.6" textLength="48.8" clip-path="url(#terminal-645194935-line-19)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="483.6" textLength="305" clip-path="url(#terminal-645194935-line-19)">src/wintersolve/workflows</text><text class="terminal-645194935-r2" x="1073.6" y="483.6" textLength="12.2" clip-path="url(#terminal-645194935-line-19)">
+</text><text class="terminal-645194935-r5" x="0" y="508" textLength="219.6" clip-path="url(#terminal-645194935-line-20)">Detected&#160;commands:</text><text class="terminal-645194935-r2" x="1073.6" y="508" textLength="12.2" clip-path="url(#terminal-645194935-line-20)">
+</text><text class="terminal-645194935-r4" x="0" y="532.4" textLength="48.8" clip-path="url(#terminal-645194935-line-21)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="532.4" textLength="866.2" clip-path="url(#terminal-645194935-line-21)">install&#160;editable:&#160;`python&#160;-m&#160;pip&#160;install&#160;-e&#160;.`&#160;(pyproject.toml,&#160;medium)</text><text class="terminal-645194935-r2" x="1073.6" y="532.4" textLength="12.2" clip-path="url(#terminal-645194935-line-21)">
+</text><text class="terminal-645194935-r4" x="0" y="556.8" textLength="48.8" clip-path="url(#terminal-645194935-line-22)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="556.8" textLength="597.8" clip-path="url(#terminal-645194935-line-22)">test:&#160;`python&#160;-m&#160;pytest`&#160;(pyproject.toml,&#160;medium)</text><text class="terminal-645194935-r2" x="1073.6" y="556.8" textLength="12.2" clip-path="url(#terminal-645194935-line-22)">
+</text><text class="terminal-645194935-r4" x="0" y="581.2" textLength="48.8" clip-path="url(#terminal-645194935-line-23)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="581.2" textLength="829.6" clip-path="url(#terminal-645194935-line-23)">lint:&#160;`pre-commit&#160;run&#160;--all-files`&#160;(.pre-commit-config.yaml,&#160;medium)</text><text class="terminal-645194935-r2" x="1073.6" y="581.2" textLength="12.2" clip-path="url(#terminal-645194935-line-23)">
+</text><text class="terminal-645194935-r4" x="0" y="605.6" textLength="48.8" clip-path="url(#terminal-645194935-line-24)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="605.6" textLength="634.4" clip-path="url(#terminal-645194935-line-24)">pipx:&#160;`pipx&#160;install&#160;wintersolve`&#160;(README.md,&#160;medium)</text><text class="terminal-645194935-r2" x="1073.6" y="605.6" textLength="12.2" clip-path="url(#terminal-645194935-line-24)">
+</text><text class="terminal-645194935-r4" x="0" y="630" textLength="48.8" clip-path="url(#terminal-645194935-line-25)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="630" textLength="744.2" clip-path="url(#terminal-645194935-line-25)">pytest:&#160;`pytest&#160;2&gt;&amp;1&#160;|&#160;wintersolve&#160;debug`&#160;(README.md,&#160;medium)</text><text class="terminal-645194935-r2" x="1073.6" y="630" textLength="12.2" clip-path="url(#terminal-645194935-line-25)">
+</text><text class="terminal-645194935-r4" x="0" y="654.4" textLength="48.8" clip-path="url(#terminal-645194935-line-26)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="654.4" textLength="36.6" clip-path="url(#terminal-645194935-line-26)">...</text><text class="terminal-645194935-r2" x="1073.6" y="654.4" textLength="12.2" clip-path="url(#terminal-645194935-line-26)">
+</text><text class="terminal-645194935-r5" x="0" y="678.8" textLength="256.2" clip-path="url(#terminal-645194935-line-27)">Security&#160;and&#160;privacy:</text><text class="terminal-645194935-r2" x="1073.6" y="678.8" textLength="12.2" clip-path="url(#terminal-645194935-line-27)">
+</text><text class="terminal-645194935-r4" x="0" y="703.2" textLength="48.8" clip-path="url(#terminal-645194935-line-28)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="703.2" textLength="97.6" clip-path="url(#terminal-645194935-line-28)">Status:&#160;</text><text class="terminal-645194935-r1" x="146.4" y="703.2" textLength="61" clip-path="url(#terminal-645194935-line-28)">clear</text><text class="terminal-645194935-r2" x="1073.6" y="703.2" textLength="12.2" clip-path="url(#terminal-645194935-line-28)">
+</text><text class="terminal-645194935-r4" x="0" y="727.6" textLength="48.8" clip-path="url(#terminal-645194935-line-29)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="727.6" textLength="280.6" clip-path="url(#terminal-645194935-line-29)">Offline&#160;by&#160;default:&#160;yes</text><text class="terminal-645194935-r2" x="1073.6" y="727.6" textLength="12.2" clip-path="url(#terminal-645194935-line-29)">
+</text><text class="terminal-645194935-r4" x="0" y="752" textLength="48.8" clip-path="url(#terminal-645194935-line-30)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="752" textLength="207.4" clip-path="url(#terminal-645194935-line-30)">Files&#160;checked:&#160;85</text><text class="terminal-645194935-r2" x="1073.6" y="752" textLength="12.2" clip-path="url(#terminal-645194935-line-30)">
+</text><text class="terminal-645194935-r4" x="0" y="776.4" textLength="48.8" clip-path="url(#terminal-645194935-line-31)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="776.4" textLength="793" clip-path="url(#terminal-645194935-line-31)">Secret-like&#160;values&#160;are&#160;redacted&#160;before&#160;they&#160;appear&#160;in&#160;any&#160;report.</text><text class="terminal-645194935-r2" x="1073.6" y="776.4" textLength="12.2" clip-path="url(#terminal-645194935-line-31)">
+</text><text class="terminal-645194935-r4" x="0" y="800.8" textLength="48.8" clip-path="url(#terminal-645194935-line-32)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="800.8" textLength="805.2" clip-path="url(#terminal-645194935-line-32)">Bandit&#160;ran&#160;on&#160;Python&#160;files&#160;(medium&#160;and&#160;high&#160;severity):&#160;0&#160;issue(s).</text><text class="terminal-645194935-r2" x="1073.6" y="800.8" textLength="12.2" clip-path="url(#terminal-645194935-line-32)">
+</text><text class="terminal-645194935-r5" x="0" y="825.2" textLength="73.2" clip-path="url(#terminal-645194935-line-33)">Risks:</text><text class="terminal-645194935-r2" x="1073.6" y="825.2" textLength="12.2" clip-path="url(#terminal-645194935-line-33)">
+</text><text class="terminal-645194935-r4" x="0" y="849.6" textLength="48.8" clip-path="url(#terminal-645194935-line-34)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="849.6" textLength="158.6" clip-path="url(#terminal-645194935-line-34)">None&#160;detected</text><text class="terminal-645194935-r2" x="1073.6" y="849.6" textLength="12.2" clip-path="url(#terminal-645194935-line-34)">
+</text><text class="terminal-645194935-r5" x="0" y="874" textLength="158.6" clip-path="url(#terminal-645194935-line-35)">Next&#160;actions:</text><text class="terminal-645194935-r2" x="1073.6" y="874" textLength="12.2" clip-path="url(#terminal-645194935-line-35)">
+</text><text class="terminal-645194935-r4" x="0" y="898.4" textLength="48.8" clip-path="url(#terminal-645194935-line-36)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="898.4" textLength="634.4" clip-path="url(#terminal-645194935-line-36)">Run&#160;the&#160;detected&#160;test&#160;command&#160;before&#160;making&#160;changes.</text><text class="terminal-645194935-r2" x="1073.6" y="898.4" textLength="12.2" clip-path="url(#terminal-645194935-line-36)">
+</text><text class="terminal-645194935-r4" x="0" y="922.8" textLength="48.8" clip-path="url(#terminal-645194935-line-37)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="922.8" textLength="829.6" clip-path="url(#terminal-645194935-line-37)">Use&#160;`wintersolve&#160;explain&#160;&lt;file&gt;`&#160;on&#160;the&#160;most&#160;important&#160;source&#160;files.</text><text class="terminal-645194935-r2" x="1073.6" y="922.8" textLength="12.2" clip-path="url(#terminal-645194935-line-37)">
+</text><text class="terminal-645194935-r4" x="0" y="947.2" textLength="48.8" clip-path="url(#terminal-645194935-line-38)">&#160;&#160;-&#160;</text><text class="terminal-645194935-r2" x="48.8" y="947.2" textLength="817.4" clip-path="url(#terminal-645194935-line-38)">Use&#160;the&#160;architecture&#160;map&#160;as&#160;the&#160;first&#160;contributor&#160;onboarding&#160;guide.</text><text class="terminal-645194935-r2" x="1073.6" y="947.2" textLength="12.2" clip-path="url(#terminal-645194935-line-38)">
 </text>
     </g>
     </g>
