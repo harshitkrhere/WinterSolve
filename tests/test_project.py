@@ -6,6 +6,7 @@ import pytest
 
 from wintersolve.project import (
     MAX_TEXT_FILE_BYTES,
+    find_hygiene_files,
     is_code_file,
     is_ignored_directory,
     is_probably_text,
@@ -75,6 +76,28 @@ class TestFileClassification:
         assert is_code_file(Path("main.go"))
         assert not is_code_file(Path("README.md"))
         assert not is_code_file(Path("config.yaml"))
+
+
+class TestFindHygieneFiles:
+    def test_accepts_common_spellings_case_insensitively(self) -> None:
+        found = find_hygiene_files(
+            ["Readme.md", "LICENCE", "COPYING", "History.md", "security.rst"]
+        )
+
+        assert found == {
+            "README": "Readme.md",
+            "LICENSE": "COPYING",
+            "CHANGELOG": "History.md",
+            "SECURITY": "security.rst",
+        }
+
+    def test_prefers_markdown_when_several_spellings_exist(self) -> None:
+        found = find_hygiene_files(["README", "README.rst", "README.md"])
+
+        assert found["README"] == "README.md"
+
+    def test_ignores_lookalikes(self) -> None:
+        assert find_hygiene_files(["README.md.bak", "license_check.py", ".gitignore"]) == {}
 
 
 class TestResolveProjectPath:

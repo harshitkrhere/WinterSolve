@@ -27,6 +27,34 @@ class TestSuggestDocs:
         assert "Installation" in result.missing_sections
         assert "Usage" in result.missing_sections
 
+    def test_reads_readme_under_any_conventional_name(self, tmp_path: Path) -> None:
+        write(tmp_path / "Readme.md", "# Express\n\n## Installation\n\n## Quick Start\n")
+
+        result = suggest_docs(tmp_path)
+
+        assert "Installation" not in result.missing_sections
+        assert "Usage" not in result.missing_sections
+        assert result.readme_draft.startswith("# Express\n")
+
+    def test_understands_restructuredtext_headings(self, tmp_path: Path) -> None:
+        write(
+            tmp_path / "README.rst",
+            "Flask\n=====\n\nA framework.\n\nA Simple Example\n----------------\n\nCode.\n\n"
+            "Contributing\n~~~~~~~~~~~~\n\nHelp out.\n",
+        )
+
+        result = suggest_docs(tmp_path)
+
+        assert "Usage" not in result.missing_sections
+        assert "Contributing" not in result.missing_sections
+        assert "Installation" in result.missing_sections
+        assert result.readme_draft.startswith("# Flask\n")
+
+    def test_underlined_markdown_headings_count_too(self) -> None:
+        markdown = "Demo\n====\n\nIntro text.\n\nUsage\n-----\n\n- a list item\n---\n"
+
+        assert readme_headings(markdown) == ["demo", "usage"]
+
     def test_headings_inside_code_blocks_are_ignored(self) -> None:
         markdown = "# Real\n\n```md\n## Not a heading\n```\n\n## Usage ##\n"
 
