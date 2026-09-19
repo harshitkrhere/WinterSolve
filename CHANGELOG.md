@@ -6,6 +6,10 @@ All notable changes to WinterSolve are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Command detection for pre-commit, tox, nox, just, and Taskfile marker files.
+
 ## [0.3.0] - 2026-09-17
 
 First public release candidate. Everything below compares to the 0.2.0 tree
