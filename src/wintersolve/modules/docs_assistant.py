@@ -11,8 +11,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from wintersolve.modules.scanner import ScanResult, scan_project
-from wintersolve.project import find_hygiene_files, read_text_file
+from wintersolve.modules.scanner import RECOMMENDED_FILES, ScanResult, scan_project
+from wintersolve.project import COMMUNITY_FILE_FOLDERS, find_community_files, read_text_file
 
 MAX_SECTION_SUGGESTIONS = 8
 
@@ -38,6 +38,16 @@ EXPECTED_README_SECTIONS: dict[str, tuple[str, ...]] = {
     "License": ("license", "licence"),
 }
 
+# A dedicated file covers its topic, so the README does not need to repeat it:
+# a project with CONTRIBUTING.md is not asked for a Development section.
+SECTIONS_COVERED_BY_FILES = {
+    "Development": "CONTRIBUTING",
+    "Testing": "CONTRIBUTING",
+    "Contributing": "CONTRIBUTING",
+    "Security": "SECURITY",
+    "License": "LICENSE",
+}
+
 # ``## Title`` (Markdown ATX) and a title underlined with ``====`` or ``----``
 # (Markdown setext, and the only heading style reStructuredText has).
 ATX_HEADING = re.compile(r"^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$")
@@ -59,10 +69,16 @@ def suggest_docs(path: Path, scan: ScanResult | None = None) -> DocsSuggestion:
     readme_text = _read_readme(path)
 
     headings = readme_headings(readme_text)
+    files_present = {
+        canonical
+        for canonical, suggested_name in RECOMMENDED_FILES.items()
+        if suggested_name not in scan.missing_recommended_files
+    }
     missing_sections = [
         section
         for section, keywords in EXPECTED_README_SECTIONS.items()
         if not any(keyword in heading for heading in headings for keyword in keywords)
+        and SECTIONS_COVERED_BY_FILES.get(section) not in files_present
     ]
     project_name = readme_title(readme_text) or path.name
 
@@ -75,30 +91,33 @@ def suggest_docs(path: Path, scan: ScanResult | None = None) -> DocsSuggestion:
 
 
 def _read_readme(project: Path) -> str:
-    """Read the project's README whatever it is called (README.md, Readme.md, README.rst...)."""
-    if not project.is_dir():
-        return ""
-    root_files = (entry.name for entry in project.iterdir() if entry.is_file())
-    readme_name = find_hygiene_files(root_files).get("README")
-    if readme_name is None:
-        return ""
-    return read_text_file(project / readme_name)
+    """Read the README GitHub would show: any common spelling, at the root, .github/, or docs/."""
+    folders = [project, *(project / name for name in COMMUNITY_FILE_FOLDERS)]
+    listing = [
+        entry.relative_to(project).as_posix()
+        for folder in folders
+        if folder.is_dir()
+        for entry in folder.iterdir()
+        if entry.is_file()
+    ]
+    readme = find_community_files(listing).get("README")
+    return read_text_file(project / readme) if readme else ""
 
 
 def readme_headings(markdown: str) -> list[str]:
     """Return lower-cased heading texts, ignoring headings inside code fences."""
-    return [text.lower() for _, text in _headings(markdown)]
+    return [text.lower() for _, text in markdown_headings(markdown)]
 
 
 def readme_title(markdown: str) -> str | None:
     """The first top-level heading, which is almost always the project name."""
-    for level, text in _headings(markdown):
+    for level, text in markdown_headings(markdown):
         if level == 1:
             return text
     return None
 
 
-def _headings(markdown: str) -> list[tuple[int, str]]:
+def markdown_headings(markdown: str) -> list[tuple[int, str]]:
     """Find headings as (level, text), in document order.
 
     Handles ``# Title`` and titles underlined with a row of punctuation, the

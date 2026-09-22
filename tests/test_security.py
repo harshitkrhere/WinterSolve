@@ -5,10 +5,14 @@ from pathlib import Path
 
 import pytest
 
+from wintersolve.models import SecurityFinding
 from wintersolve.modules.security import (
     CATEGORY_BANDIT,
     CATEGORY_CODE_PATTERN,
     CATEGORY_SECRET,
+    _bandit_finding,
+    _flagged_line,
+    _without_lines_bandit_also_found,
     analyze_security,
     looks_like_real_secret,
     redact_secrets,
@@ -173,3 +177,66 @@ class TestHelpers:
         assert strip_strings_and_comments('x = eval("1")  # eval(y)') == 'x = eval("")  '
         assert strip_strings_and_comments("// eval(y)") == ""
         assert strip_strings_and_comments('url = "http://x/#a"') == 'url = ""'
+
+
+class TestContext:
+    """Where a finding sits changes how much it matters."""
+
+    def test_findings_in_test_code_are_low_severity(self, tmp_path: Path) -> None:
+        write(tmp_path / "tests" / "test_eval.py", "assert eval('1 + 1') == 2\n")
+        write(tmp_path / "tests" / "conftest.py", "PASSWORD = " + '"hunter2hunter2x9"\n')
+
+        summary = analyze_security(tmp_path, run_bandit=False)
+
+        assert {(f.path, f.severity) for f in summary.findings} == {
+            ("tests/test_eval.py", "low"),
+            ("tests/conftest.py", "low"),
+        }
+        assert summary.status == "low-severity findings only"
+        assert any(note.startswith("Findings in test code are rated low") for note in summary.notes)
+
+    def test_known_token_formats_stay_high_even_in_tests(self, tmp_path: Path) -> None:
+        write(tmp_path / "tests" / "fixtures.py", f'KEY = "{FAKE_AWS_KEY}"\n')
+
+        (finding,) = analyze_security(tmp_path, run_bandit=False).findings
+
+        assert finding.severity == "high"
+
+    def test_status_distinguishes_clear_low_and_attention(self, tmp_path: Path) -> None:
+        assert analyze_security(tmp_path, run_bandit=False).status == "clear"
+
+        write(tmp_path / "app.py", "x = eval(y)\n")
+
+        assert analyze_security(tmp_path, run_bandit=False).status == "attention needed"
+
+
+class TestBanditOutputHandling:
+    def test_only_the_flagged_line_is_kept_as_evidence(self) -> None:
+        code = '280     """\n281     return hashlib.sha1(string)\n282 \n'
+
+        assert _flagged_line(code, 281) == "return hashlib.sha1(string)"
+        assert _flagged_line(code, 999) == '280     """'
+        assert _flagged_line("", 1) == ""
+
+    def test_bandit_findings_in_tests_are_low(self, tmp_path: Path) -> None:
+        issue = {
+            "filename": str(tmp_path / "tests" / "test_app.py"),
+            "line_number": 3,
+            "test_id": "B201",
+            "issue_text": "Flask app run with debug=True",
+            "issue_severity": "HIGH",
+            "code": "3 app.run(debug=True)\n",
+        }
+
+        finding = _bandit_finding(issue, tmp_path)
+
+        assert finding.path == "tests/test_app.py"
+        assert finding.severity == "low"
+        assert finding.evidence == "app.run(debug=True)"
+
+    def test_heuristic_duplicates_of_bandit_lines_are_dropped(self) -> None:
+        heuristic = SecurityFinding("a.py", 4, CATEGORY_CODE_PATTERN, "eval() call", "medium", "")
+        other = SecurityFinding("a.py", 9, CATEGORY_CODE_PATTERN, "exec() call", "medium", "")
+        bandit = SecurityFinding("a.py", 4, CATEGORY_BANDIT, "Bandit B307", "medium", "")
+
+        assert _without_lines_bandit_also_found([heuristic, other], [bandit]) == [other]

@@ -6,10 +6,12 @@ import pytest
 
 from wintersolve.project import (
     MAX_TEXT_FILE_BYTES,
+    find_community_files,
     find_hygiene_files,
     is_code_file,
     is_ignored_directory,
     is_probably_text,
+    is_test_path,
     iter_project_files,
     resolve_project_path,
     walk_project,
@@ -98,6 +100,53 @@ class TestFindHygieneFiles:
 
     def test_ignores_lookalikes(self) -> None:
         assert find_hygiene_files(["README.md.bak", "license_check.py", ".gitignore"]) == {}
+
+
+class TestFindCommunityFiles:
+    def test_root_wins_then_github_then_docs(self) -> None:
+        found = find_community_files(
+            [
+                "README.md",
+                ".github/README.md",
+                ".github/CONTRIBUTING.md",
+                "docs/contributing.rst",
+                "docs/SECURITY.md",
+                "docs/LICENSE",
+            ]
+        )
+
+        assert found == {
+            "README": "README.md",
+            "CONTRIBUTING": ".github/CONTRIBUTING.md",
+            "SECURITY": "docs/SECURITY.md",
+        }
+
+    def test_deeper_folders_are_ignored(self) -> None:
+        assert find_community_files(["docs/guide/CONTRIBUTING.md"]) == {}
+
+
+class TestIsTestPath:
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "tests",
+            "tests/test_app.py",
+            "examples/tutorial/tests/conftest.py",
+            "src/test/java/AppTest.java",
+            "pkg/handler_test.go",
+            "src/App.test.tsx",
+            "spec/models/user_spec.rb",
+            "test_cli.py",
+        ],
+    )
+    def test_recognises_test_code(self, path: str) -> None:
+        assert is_test_path(path)
+
+    @pytest.mark.parametrize(
+        "path", ["src/app.py", "latest/notes.md", "contest.py", "src/testing_utils.py"]
+    )
+    def test_ignores_lookalikes(self, path: str) -> None:
+        assert not is_test_path(path)
 
 
 class TestResolveProjectPath:

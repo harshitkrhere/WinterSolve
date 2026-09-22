@@ -13,7 +13,13 @@ from pathlib import Path
 from typing import Any
 
 from wintersolve.logging_config import get_logger
-from wintersolve.project import LANGUAGE_BY_EXTENSION, find_hygiene_files, walk_project
+from wintersolve.project import (
+    LANGUAGE_BY_EXTENSION,
+    find_community_files,
+    is_code_file,
+    is_test_path,
+    walk_project,
+)
 
 logger = get_logger("wintersolve.modules.scanner")
 
@@ -78,7 +84,8 @@ FRAMEWORK_MARKERS = {
 }
 
 # Community files are matched by convention (README.rst, LICENSE.txt, Readme.md
-# all count; see ``project.find_hygiene_files``); manifests by exact name.
+# all count, and so does .github/CONTRIBUTING.md; see
+# ``project.find_community_files``); manifests by exact name.
 HYGIENE_FILE_ORDER = [
     "README",
     "CONTRIBUTING",
@@ -112,8 +119,14 @@ SOURCE_ROOT_NAMES = frozenset(
     {"src", "app", "lib", "packages", "services", "cmd", "internal", "pkg"}
 )
 MAX_SOURCE_PATH_DEPTH = 3
-
-TESTABLE_EXTENSIONS = frozenset({".py", ".js", ".ts", ".tsx", ".go", ".rs", ".rb", ".java"})
+# Top-level folders that may hold an ``__init__.py`` without being the product.
+NOT_SOURCE_FOLDERS = frozenset({"docs", "doc", "examples", "scripts", "tools", "benchmarks"})
+# Code files at the root that configure tooling rather than being the product.
+ROOT_TOOLING_FILES = frozenset(
+    {"setup.py", "conftest.py", "noxfile.py", "gulpfile.js", "Gruntfile.js"}
+)
+# Shown for projects whose code sits at the top level, as Go modules often do.
+REPOSITORY_ROOT = "."
 
 # Reused by the Repo Brain recommendations so it can drop this line once
 # commands have actually been detected.
@@ -164,15 +177,15 @@ def scan_project(path: Path) -> ScanResult:
     frameworks = sorted(
         {stack for marker, stack in FRAMEWORK_MARKERS.items() if marker in top_level_entries}
     )
-    hygiene = find_hygiene_files(name for name in relative_files if "/" not in name)
+    hygiene = find_community_files(relative_files)
     important_files = [hygiene[key] for key in HYGIENE_FILE_ORDER if key in hygiene]
     important_files.extend(name for name in IMPORTANT_MANIFESTS if name in relative_files)
     missing_recommended_files = [
         suggested for key, suggested in RECOMMENDED_FILES.items() if key not in hygiene
     ]
 
-    likely_test_paths = sorted(item for item in top_level_entries if _looks_like_test_path(item))
-    likely_source_paths = sorted(item for item in relative_dirs if _looks_like_source_path(item))
+    likely_test_paths = sorted(item for item in top_level_entries if is_test_path(item))
+    likely_source_paths = _find_source_paths(relative_files, relative_dirs)
 
     risks = _build_risks(
         total_files=len(tree.files),
@@ -225,24 +238,43 @@ def _missing_project(path: Path) -> ScanResult:
     )
 
 
-def _looks_like_test_path(relative_path: str) -> bool:
-    normalized = relative_path.lower()
-    name = Path(relative_path).name.lower()
-    suffix = Path(relative_path).suffix.lower()
-    return (
-        normalized in {"test", "tests", "spec", "__tests__"}
-        or normalized.startswith(("tests/", "test/", "spec/", "__tests__/"))
-        or "/tests/" in normalized
-        or "/__tests__/" in normalized
-        or (name.startswith("test_") and suffix in TESTABLE_EXTENSIONS)
-        or name.endswith(("_test.py", "_test.go", ".test.js", ".test.ts", ".test.tsx"))
-        or name.endswith((".spec.js", ".spec.ts", ".spec.tsx", "_spec.rb"))
+def _find_source_paths(relative_files: set[str], relative_dirs: set[str]) -> list[str]:
+    """Where the product code lives, in the order a newcomer should look.
+
+    Conventional folders (``src``, ``lib``, ``cmd``...) come first, then
+    top-level Python packages (``flask/__init__.py``). A project with neither
+    but with code at the top level (most Go modules, small scripts) gets the
+    repository root itself.
+    """
+    conventional = sorted(item for item in relative_dirs if _looks_like_source_path(item))
+    packages = sorted(
+        folder
+        for folder in relative_dirs
+        if "/" not in folder
+        and f"{folder}/__init__.py" in relative_files
+        and folder not in NOT_SOURCE_FOLDERS
+        and not is_test_path(folder)
+        and folder not in conventional
     )
+    if conventional or packages:
+        return conventional + packages
+    root_code = [name for name in relative_files if "/" not in name and _is_root_product_code(name)]
+    return [REPOSITORY_ROOT] if root_code else []
 
 
 def _looks_like_source_path(relative_dir: str) -> bool:
     parts = relative_dir.split("/")
     return parts[0] in SOURCE_ROOT_NAMES and len(parts) <= MAX_SOURCE_PATH_DEPTH
+
+
+def _is_root_product_code(name: str) -> bool:
+    return (
+        is_code_file(Path(name))
+        and not is_test_path(name)
+        and name not in ROOT_TOOLING_FILES
+        and ".config." not in name
+        and not name.startswith(".")
+    )
 
 
 def _build_risks(
@@ -258,8 +290,6 @@ def _build_risks(
         risks.append("No common project or framework markers were detected.")
     if "README.md" in missing_recommended_files:
         risks.append("No README was found, so onboarding may be difficult.")
-    if "SECURITY.md" in missing_recommended_files:
-        risks.append("No SECURITY.md was found for vulnerability reporting guidance.")
     if not likely_test_paths:
         risks.append("No obvious test files or test directories were detected.")
     return risks

@@ -46,7 +46,7 @@ def _render_scan_text(result: ScanResult) -> str:
         _section("Languages", _format_pairs(result.languages)),
         _section("Detected stack", result.frameworks),
         _section("Important files", result.important_files),
-        _section("Likely source paths", result.likely_source_paths),
+        _section("Likely source paths", _format_paths(result.likely_source_paths)),
         _section("Likely test paths", result.likely_test_paths),
         _section("Risks", result.risks),
         _section("Recommendations", result.recommendations),
@@ -66,7 +66,7 @@ def _render_scan_markdown(result: ScanResult) -> str:
         _markdown_section("Languages", _format_pairs(result.languages)),
         _markdown_section("Detected Stack", result.frameworks),
         _markdown_section("Important Files", result.important_files),
-        _markdown_section("Likely Source Paths", result.likely_source_paths),
+        _markdown_section("Likely Source Paths", _format_paths(result.likely_source_paths)),
         _markdown_section("Likely Test Paths", result.likely_test_paths),
         _markdown_section("Risks", result.risks),
         _markdown_section("Recommendations", result.recommendations),
@@ -94,7 +94,7 @@ def _render_brain_text(result: BrainReport) -> str:
         "",
         _section("Languages", _format_pairs(result.languages)),
         _section("Detected stack", result.stack),
-        _section("Source layout", result.source_paths),
+        _section("Source layout", _format_paths(result.source_paths)),
         _section("Test layout", result.test_paths),
         _section("Documentation health", result.docs_health),
         _section("Detected commands", _format_commands(result.commands)),
@@ -118,7 +118,7 @@ def _render_brain_markdown(result: BrainReport) -> str:
     sections = [
         _markdown_section("Languages", _format_pairs(result.languages)),
         _markdown_section("Detected Stack", result.stack),
-        _markdown_section("Source Layout", result.source_paths),
+        _markdown_section("Source Layout", _format_paths(result.source_paths)),
         _markdown_section("Test Layout", result.test_paths),
         _markdown_section("Documentation Health", result.docs_health),
         _markdown_section("Detected Commands", _format_commands(result.commands)),
@@ -213,6 +213,11 @@ def _section(title: str, items: Sequence[str]) -> str:
 def _markdown_section(title: str, items: Sequence[str]) -> str:
     bullets = [f"- {item}" for item in items] or ["- None detected"]
     return "\n".join([f"## {title}", "", *bullets])
+
+
+def _format_paths(paths: Sequence[str]) -> list[str]:
+    """Spell out ``.`` so a Go module's root-level source reads naturally."""
+    return [". (repository root)" if path == "." else path for path in paths]
 
 
 def _format_pairs(pairs: Sequence[tuple[str, int]]) -> list[str]:

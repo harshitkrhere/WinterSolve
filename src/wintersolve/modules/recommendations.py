@@ -3,6 +3,9 @@
 This is where the Repo Brain report gets its opinions. Rules here should be
 specific enough to be actionable and humble enough to be true: analyzers
 produce leads, and the wording should say so.
+
+Low-severity security findings (for example ``eval`` in a test) stay in the
+Security section but do not drive risks, recommendations, or next actions.
 """
 
 from __future__ import annotations
@@ -48,7 +51,7 @@ def build_docs_health(missing_sections: list[str], missing_files: list[str]) -> 
 
 def build_brain_risks(scan: ScanResult, security: SecuritySummary, command_count: int) -> list[str]:
     risks = list(scan.risks)
-    counts = _count_by_category(security.findings)
+    counts = _count_by_category(_worth_acting_on(security.findings))
 
     if counts[CATEGORY_SECRET]:
         risks.append(f"{counts[CATEGORY_SECRET]} possible hardcoded secret(s) found.")
@@ -75,13 +78,14 @@ def build_brain_recommendations(
         if not (command_count > 0 and recommendation == RECOMMEND_DOCUMENT_COMMANDS)
     ]
 
-    categories = {finding.category for finding in security.findings}
+    findings = _worth_acting_on(security.findings)
+    categories = {finding.category for finding in findings}
     if CATEGORY_SECRET in categories:
         recommendations.append(
             "Move secrets to environment variables or a secrets manager, "
             "then rotate any credential that was real."
         )
-    for kind in sorted({f.kind for f in security.findings if f.category == CATEGORY_CODE_PATTERN}):
+    for kind in sorted({f.kind for f in findings if f.category == CATEGORY_CODE_PATTERN}):
         advice = ADVICE_BY_CODE_PATTERN.get(kind)
         if advice:
             recommendations.append(advice)
@@ -105,10 +109,11 @@ def build_next_actions(
 ) -> list[str]:
     actions: list[str] = []
 
-    high_severity = sum(1 for finding in security.findings if finding.severity == "high")
+    findings = _worth_acting_on(security.findings)
+    high_severity = sum(1 for finding in findings if finding.severity == "high")
     if high_severity:
         actions.append(f"Review the {high_severity} high-severity security finding(s) first.")
-    elif security.findings:
+    elif findings:
         actions.append("Review the security findings before sharing this repository or report.")
 
     if command_count == 0:
@@ -122,6 +127,10 @@ def build_next_actions(
     if has_architecture:
         actions.append("Use the architecture map as the first contributor onboarding guide.")
     return _dedupe(actions)
+
+
+def _worth_acting_on(findings: list[SecurityFinding]) -> list[SecurityFinding]:
+    return [finding for finding in findings if finding.severity != "low"]
 
 
 def _count_by_category(findings: list[SecurityFinding]) -> Counter[str]:
