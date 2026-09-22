@@ -21,4 +21,3 @@ WinterSolve should be a welcoming open-source project for developers of differen
 ## Reporting
 
 If there is a problem, project maintainers should review the situation fairly and take action that protects the health of the community.
-
