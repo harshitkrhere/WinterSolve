@@ -31,8 +31,8 @@ src/wintersolve/
 │   ├── command_detector.py install / build / test / run command inference
 │   ├── architecture.py     top-level areas and their likely purpose
 │   ├── docs_assistant.py   README section and hygiene-file checks, README draft
-│   ├── explainer.py        single-file explanation (ast for Python)
-│   ├── debugger.py         error signature matching
+│   ├── explainer.py        single-file explanation (ast for Python, patterns for the rest)
+│   ├── debugger.py         error signature rules, each with its own advice
 │   ├── reviewer.py         git status -> review risks and checklist
 │   └── recommendations.py  turns findings into risks, recommendations, next actions
 ├── providers/              optional AI provider interface and examples (never required)
@@ -48,7 +48,7 @@ src/wintersolve/
    analyzer builds on that walk instead of re-scanning.
 3. **Leads, not verdicts.** Security and debug output is heuristic and says so.
    Wording stays humble; severity is honest (`high` only for unambiguous token
-   formats).
+   formats, `low` for findings in test code).
 4. **Stable outputs.** Text output is plain (no colour codes, no terminal markup)
    so it pastes into issues. JSON carries a `schema_version`; fields are added,
    not renamed.

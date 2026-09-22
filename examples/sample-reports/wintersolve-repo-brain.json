@@ -141,7 +141,7 @@
   },
   "languages": [
     {
-      "files": 38,
+      "files": 39,
       "name": "Python"
     },
     {
@@ -164,7 +164,7 @@
   "risks": [],
   "schema_version": 1,
   "security": {
-    "files_checked": 85,
+    "files_checked": 86,
     "findings": [],
     "notes": [
       "Secret-like values are redacted before they appear in any report.",
@@ -196,7 +196,7 @@
     "tests/test_debugger.py",
     "tests/test_docs_assistant.py",
     "tests/test_explainer.py",
-    "tests/test_project.py",
-    "tests/test_providers.py"
+    "tests/test_logging_config.py",
+    "tests/test_project.py"
   ]
 }

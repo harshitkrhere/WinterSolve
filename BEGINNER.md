@@ -77,10 +77,10 @@ Pick one:
 | Difficulty | Idea | Where |
 | --- | --- | --- |
 | Easy | Add a stack marker you use (for example, `bunfig.toml` or `Justfile`). | `modules/scanner.py` `FRAMEWORK_MARKERS` + `tests/test_scanner.py` |
-| Easy | Add an error signature the debugger misses. | `modules/debugger.py` `PATTERNS` + `tests/test_debugger.py` |
+| Easy | Add an error signature the debugger misses. | `modules/debugger.py` `RULES` + `tests/test_debugger.py` |
+| Easy | Teach `explain` a language it skips (Swift, Scala, Dart, Elixir, Lua). | `modules/explainer.py` `LanguageRules` + `tests/test_explainer.py` |
 | Easy | Add a README heading synonym (for example, "Setup" for Installation). | `modules/docs_assistant.py` + `tests/test_docs_assistant.py` |
-| Medium | Detect commands from a `Justfile` or `Taskfile.yml`. | `modules/command_detector.py` + tests |
-| Medium | Give the explainer TypeScript/JavaScript symbol detection. | `modules/explainer.py` + tests |
+| Medium | Detect tasks from `deno.json` and targets from a Ruby `Rakefile`. | `modules/command_detector.py` + tests |
 | Medium | Add an HTML renderer for the Repo Brain report. | `report.py`, `cli.py` (`ReportFormat`), registry, tests |
 | Hard | Monorepo awareness: detect stacks in `apps/*` and `packages/*`. | `modules/scanner.py`, `modules/command_detector.py`, tests |
 

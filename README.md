@@ -51,7 +51,7 @@ Project: WinterSolve
 Offline mode: yes
 
 Languages:
-  - Python: 38
+  - Python: 39
   - Markdown: 29
   - PowerShell: 2
 Detected stack:
@@ -78,7 +78,7 @@ Architecture map:
   - tests: Automated tests; notable: tests/conftest.py, tests/test_cli.py, ...
 Security and privacy:
   - Status: clear
-  - Files checked: 85
+  - Files checked: 86
   - Secret-like values are redacted before they appear in any report.
   - Bandit ran on Python files (medium and high severity): 0 issue(s).
 Risks:
@@ -93,14 +93,44 @@ On a repository with problems, the same report names them: a committed AWS
 key (redacted in the output), `eval()` on user input, SQL built from request
 data, a missing test directory, a README with no install section.
 
+The smaller commands are just as concrete. `debug` names the fix, not only the
+category:
+
+```text
+$ echo "ModuleNotFoundError: No module named 'cv2'" | wintersolve debug
+...
+Likely causes:
+  - Python dependency or import path issue
+Next steps:
+  - `cv2` is provided by the `opencv-python` package: `python -m pip install opencv-python`.
+  - Install into the environment that runs the code: activate the virtual environment first, ...
+```
+
+`explain` reads a file the way a person would, in Python, JavaScript/TypeScript,
+Go, Rust, Java, and more than a dozen other languages and formats. Here it is on
+`command.go` from [Cobra](https://github.com/spf13/cobra):
+
+```text
+Summary:
+  - command.go is a Go file with 2072 lines.
+  - Its header comment says: Package cobra is a commander providing a simple interface to create powerful modern CLI interfaces.
+  - It has 13 definitions.
+  - It imports 10 modules: 9 from the standard library, 1 from third-party packages (github.com/spf13/pflag).
+Symbols and sections:
+  - type FParseErrWhitelist
+  - struct Group
+  - struct Command (116 methods)
+  ...
+```
+
 ## Commands
 
 | Command | What it does | Formats |
 | --- | --- | --- |
 | `wintersolve brain .` | Full project intelligence report (everything below, composed). | text, markdown, json |
 | `wintersolve scan .` | Quick health check from file names and marker files only. | text, markdown, json |
-| `wintersolve explain FILE` | What one file is, what it defines, what it depends on. | text |
-| `wintersolve debug --text "..."` | Likely causes and next steps for an error or stack trace. Also reads stdin. | text |
+| `wintersolve explain FILE` | What one file is, what it defines, what it imports. Python, JS/TS, Go, Rust, Java, and [more](docs/COMMANDS.md#explain--one-file-explained). | text |
+| `wintersolve debug --text "..."` | Likely causes and specific next steps for an error or stack trace. Also reads stdin. | text |
 | `wintersolve docs .` | Missing README sections and hygiene files; `--draft-readme` for a skeleton. | text |
 | `wintersolve review .` | Turns your uncommitted changes into review risks and a checklist. | text |
 
@@ -125,7 +155,10 @@ wintersolve brain ~/code/some-repo --no-bandit                    # fastest poss
   virtual environments, and build output before descending.
 - **Honest.** Heuristics are labelled as heuristics. The security section says
   exactly which checks ran, and severity is earned: `high` only for unambiguous
-  token formats, never for "this line mentions a password".
+  token formats, never for "this line mentions a password", and `low` for
+  `eval()` or a fake password in test code.
+- **Specific.** Advice names the package to install, the port that is busy,
+  or the line to start reading, instead of a category of problem.
 - **Structured.** Plain text that pastes cleanly, Markdown for wikis, JSON with
   a `schema_version` for tools. Same commit, same report, every time.
 - **Small.** Two runtime dependencies (`typer`, `rich`), plain dataclasses,
@@ -207,9 +240,10 @@ bugs in [Issues](https://github.com/harshitkrhere/WinterSolve/issues).
 
 ## Status
 
-Version 0.3.0, alpha. The command set is stable; report wording may still
-change between minor versions, and the JSON `schema_version` is bumped for any
-breaking change. See the [changelog](CHANGELOG.md) and the [roadmap](ROADMAP.md).
+Alpha (the current release is on the PyPI badge above). The command set is
+stable; report wording may still change between minor versions, and the JSON
+`schema_version` is bumped for any breaking change. See the
+[changelog](CHANGELOG.md) and the [roadmap](ROADMAP.md).
 
 If WinterSolve saved you time, a star helps other people find it.
 
