@@ -13,8 +13,9 @@ repository from the terminal. This page lists what is next; the
 
 ## Next (0.4)
 
-- Language-aware explainers for TypeScript/JavaScript and Go (symbols, imports,
-  exports) to match the Python one.
+- ~~Language-aware explainers for TypeScript/JavaScript and Go~~ Done, along
+  with Rust, Java, Kotlin, C#, C/C++, Ruby, PHP, shell, and data formats (see
+  the [changelog](CHANGELOG.md)).
 - Dependency overview: declared dependencies per ecosystem, with counts and
   obviously stale pins, entirely offline.
 - Import graph for Python packages, surfaced as "most depended-on modules" in

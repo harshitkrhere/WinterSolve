@@ -6,7 +6,7 @@
 
 ## Languages
 
-- Python: 38
+- Python: 39
 - Markdown: 29
 - PowerShell: 2
 
@@ -36,8 +36,8 @@
 - tests/test_debugger.py
 - tests/test_docs_assistant.py
 - tests/test_explainer.py
+- tests/test_logging_config.py
 - tests/test_project.py
-- tests/test_providers.py
 
 ## Documentation Health
 
@@ -67,7 +67,7 @@
 
 - Status: clear
 - Offline by default: yes
-- Files checked: 85
+- Files checked: 86
 - Secret-like values are redacted before they appear in any report.
 - Bandit ran on Python files (medium and high severity): 0 issue(s).
 

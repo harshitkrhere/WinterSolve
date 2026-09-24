@@ -41,7 +41,8 @@ pytest
 | --- | --- |
 | Detect a new framework, language, or package manager | `modules/scanner.py` (`FRAMEWORK_MARKERS`, `project.py` for extensions) |
 | Infer a new command | `modules/command_detector.py` |
-| Recognise a new error signature | `modules/debugger.py` (`PATTERNS`) |
+| Recognise a new error signature | `modules/debugger.py` (`RULES`: a pattern, a cause, and its advice) |
+| Teach `explain` a new language | `modules/explainer.py` (a `LanguageRules` entry plus a line in `ANALYZERS`) |
 | Add or tune a security rule | `modules/security.py` (and `docs/SECURITY_MODEL.md`) |
 | Change how a report reads | `report.py`; wording rules in `modules/recommendations.py` |
 | Add a command | `cli.py`, then register it in `workflows/registry.py` |
@@ -54,6 +55,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full map and
 - A framework or tool marker that WinterSolve misses on a repository you know.
 - A command that `brain` should have found (attach the manifest file).
 - An error message the debugger does not recognise (attach the text).
+- A language `explain` does not understand yet (Swift, Scala, Dart, Elixir,
+  Lua...): copy an existing `LanguageRules` entry and adapt its patterns.
 - A false positive from the security scan (attach the line, redacted if needed).
 - A README section synonym the docs assistant should accept.
 

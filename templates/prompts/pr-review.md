@@ -12,4 +12,3 @@ Use the diff, related files, tests, and project context to produce:
 - Suggested review comments
 
 Prioritize concrete findings over style preferences.
-

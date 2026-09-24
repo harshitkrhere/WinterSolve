@@ -91,3 +91,55 @@ class TestScanProject:
 
         assert data["path"] == str(python_project)
         assert {"name": "Python", "files": 3} in data["languages"]
+
+
+class TestSourceLayout:
+    def test_go_modules_keep_their_code_at_the_root(self, tmp_path: Path) -> None:
+        write(tmp_path / "go.mod", "module example.com/demo\n")
+        write(tmp_path / "command.go", "package demo\n")
+        write(tmp_path / "command_test.go", "package demo\n")
+
+        result = scan_project(tmp_path)
+
+        assert result.likely_source_paths == ["."]
+
+    def test_top_level_python_packages_count_as_source(self, tmp_path: Path) -> None:
+        write(tmp_path / "setup.py", "")
+        write(tmp_path / "mypkg" / "__init__.py")
+        write(tmp_path / "tests" / "__init__.py")
+        write(tmp_path / "docs" / "__init__.py")
+
+        assert scan_project(tmp_path).likely_source_paths == ["mypkg"]
+
+    def test_tooling_files_alone_are_not_source(self, tmp_path: Path) -> None:
+        write(tmp_path / "setup.py", "")
+        write(tmp_path / "vite.config.js", "")
+
+        assert scan_project(tmp_path).likely_source_paths == []
+
+
+class TestCommunityFiles:
+    def test_files_in_github_and_docs_folders_count(self, tmp_path: Path) -> None:
+        write(tmp_path / "README.md", "# Demo\n")
+        write(tmp_path / "LICENSE", "MIT\n")
+        write(tmp_path / ".github" / "CONTRIBUTING.md", "Help\n")
+        write(tmp_path / "docs" / "security.rst", "Report issues privately\n")
+
+        result = scan_project(tmp_path)
+
+        assert result.missing_recommended_files == []
+        assert ".github/CONTRIBUTING.md" in result.important_files
+        assert "docs/security.rst" in result.important_files
+
+    def test_license_must_be_at_the_root(self, tmp_path: Path) -> None:
+        write(tmp_path / "docs" / "LICENSE", "MIT\n")
+
+        assert "LICENSE" in scan_project(tmp_path).missing_recommended_files
+
+    def test_missing_security_policy_is_advice_not_a_risk(self, python_project: Path) -> None:
+        result = scan_project(python_project)
+
+        assert "Add SECURITY.md to improve project trust and maintainability." in (
+            result.recommendations
+        )
+        assert not any("SECURITY" in risk for risk in result.risks)

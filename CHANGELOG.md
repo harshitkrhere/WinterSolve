@@ -6,6 +6,63 @@ All notable changes to WinterSolve are documented here. The format follows
 
 ## [Unreleased]
 
+Found by running every command on Express, Cobra, and Flask and fixing what
+read wrong.
+
+### Added
+
+- `explain` understands JavaScript, TypeScript, Go, Rust, Java, Kotlin, C#,
+  C, C++, Ruby, PHP, shell, PowerShell, Markdown, reStructuredText, JSON,
+  TOML, and YAML: top-level definitions, imports, and the file's header
+  comment (Go package docs, JSDoc, Rust `//!`), with licence headers skipped.
+  Go types show their method count (`struct Command (116 methods)`).
+- `explain` sorts imports into standard library, third-party, and this
+  project for Python, JavaScript/TypeScript, Go, and Rust, and Python classes
+  show their method count.
+- `debug` names what the error names: the package to install for a missing
+  Python module (including `cv2` -> `opencv-python` style mismatches and
+  `distutils` on Python 3.12+), the npm package or file path behind "Cannot
+  find module", the busy port, the missing command. It points at the deepest
+  stack frame in your own code, skipping library frames, and shows the error
+  message line as the first signal.
+- `debug` rules for JavaScript "Cannot read properties of undefined",
+  "is not a function", `ReferenceError`, Go nil pointers, Rust `unwrap()`
+  panics, and Java `NullPointerException`.
+- A coverage floor (93%) in CI.
+
+### Changed
+
+- Security findings in test code are rated `low` (Bandit's included), because
+  tests use `eval`, debug servers, and fake passwords on purpose. Well-known
+  token formats stay `high` everywhere. Low findings are still listed but no
+  longer drive the Risks, Recommendations, or Next actions sections, and the
+  security status reads `low-severity findings only` when that is all there is.
+- Bandit evidence is the flagged line only, not several numbered lines, and a
+  line flagged by both Bandit and the built-in patterns is reported once.
+- Community files are found where GitHub finds them: `CONTRIBUTING`,
+  `SECURITY`, `CODE_OF_CONDUCT`, and `README` also count in `.github/` and
+  `docs/`.
+- The README is not asked for Development, Testing, or Contributing sections
+  when a CONTRIBUTING file exists, for Security when a SECURITY file exists,
+  or for License when a LICENSE file exists.
+- A missing SECURITY.md is a recommendation, not a risk.
+- Source layout recognises code at the repository root (most Go modules) and
+  top-level Python packages, instead of reporting "No clear source directory".
+
+### Fixed
+
+- `debug` gave every import error advice about ports and PATH, because it
+  picked advice by searching the cause text for words like "port" (found in
+  "import"). Each rule now carries its own advice.
+- `debug` no longer reads a line number such as `line 403` as an HTTP 403.
+- `debug` reported "Likely language: Unknown" for JavaScript errors with
+  JavaScript stack frames.
+- `explain` listed Go's `import (` and any line starting with `use` as imports,
+  and counted Markdown-style `# ` lines as symbols in every language.
+- `explain` said a file "defines 20 symbols" when it had more; it now gives the
+  real total and says only the first 20 are listed.
+- Python relative imports keep their dots (`.ctx`, not `ctx`).
+
 ## [0.3.1] - 2026-09-19
 
 ### Added

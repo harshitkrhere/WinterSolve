@@ -12,4 +12,3 @@ Use the provided error message, logs, stack trace, environment details, and rele
 - A prevention tip
 
 Do not pretend to know information that is not present. Mark uncertain claims clearly.
-

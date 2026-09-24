@@ -13,4 +13,3 @@ Use the provided project files and metadata to produce:
 - Recommended next files to inspect
 
 Keep the output practical and concise.
-

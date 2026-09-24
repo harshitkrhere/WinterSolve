@@ -89,3 +89,20 @@ class TestSuggestDocs:
         assert suggest_docs(tmp_path).suggestions == [
             "Documentation looks healthy based on the offline checklist."
         ]
+
+
+class TestSectionsCoveredByFiles:
+    def test_dedicated_files_cover_their_readme_sections(self, tmp_path: Path) -> None:
+        write(tmp_path / "README.md", "# Demo\n\n## Usage\n")
+        write(tmp_path / "CONTRIBUTING.md", "How to help\n")
+        write(tmp_path / "SECURITY.md", "Report privately\n")
+        write(tmp_path / "LICENSE", "MIT\n")
+
+        missing = suggest_docs(tmp_path).missing_sections
+
+        assert missing == ["Overview", "Features", "Installation"]
+
+    def test_readme_in_the_github_folder_is_read(self, tmp_path: Path) -> None:
+        write(tmp_path / ".github" / "README.md", "# Demo\n\n## Installation\n")
+
+        assert "Installation" not in suggest_docs(tmp_path).missing_sections

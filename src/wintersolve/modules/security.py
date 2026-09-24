@@ -9,6 +9,10 @@ heuristic for a verdict:
                      built from request data. Only applied to source files.
 * ``bandit``       - Bandit's own findings for Python, if Bandit is installed.
 
+Findings in test code are rated ``low``: tests call ``eval``, start debug
+servers, and use fake passwords on purpose. A well-known token format stays
+``high`` wherever it appears, because a real key in a test is still a leak.
+
 Evidence lines are always redacted before they leave this module.
 """
 
@@ -20,6 +24,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 from wintersolve.logging_config import get_logger
 from wintersolve.models import SecurityFinding, SecuritySummary
@@ -27,6 +32,7 @@ from wintersolve.project import (
     IGNORED_DIRECTORIES,
     is_code_file,
     is_probably_text,
+    is_test_path,
     read_text_file,
     walk_project,
 )
@@ -38,6 +44,10 @@ CATEGORY_CODE_PATTERN = "code-pattern"
 CATEGORY_BANDIT = "bandit"
 
 SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+
+STATUS_CLEAR = "clear"
+STATUS_LOW_ONLY = "low-severity findings only"
+STATUS_ATTENTION = "attention needed"
 
 # Token formats that are unambiguous when they appear verbatim.
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -149,6 +159,7 @@ def analyze_security(root: Path, *, run_bandit: bool = True) -> SecuritySummary:
     notes = ["Secret-like values are redacted before they appear in any report."]
     if run_bandit and python_files:
         bandit_findings, bandit_note = _run_bandit(root)
+        findings = _without_lines_bandit_also_found(findings, bandit_findings)
         findings.extend(bandit_findings)
         notes.append(bandit_note)
     elif run_bandit:
@@ -163,6 +174,11 @@ def analyze_security(root: Path, *, run_bandit: bool = True) -> SecuritySummary:
             "highest severity first."
         )
         findings = findings[:MAX_REPORTED_FINDINGS]
+    if any(finding.severity == "low" for finding in findings):
+        notes.append(
+            "Findings in test code are rated low: tests use eval, debug servers, "
+            "and fake credentials on purpose."
+        )
     if findings:
         notes.append("Treat findings as leads, not verdicts: confirm each one in context.")
 
@@ -170,7 +186,7 @@ def analyze_security(root: Path, *, run_bandit: bool = True) -> SecuritySummary:
         "Security scan complete: %d files checked, %d findings", files_checked, len(findings)
     )
     return SecuritySummary(
-        status="attention needed" if findings else "clear",
+        status=_status(findings),
         offline_by_default=True,
         files_checked=files_checked,
         findings=findings,
@@ -178,18 +194,46 @@ def analyze_security(root: Path, *, run_bandit: bool = True) -> SecuritySummary:
     )
 
 
+def _status(findings: list[SecurityFinding]) -> str:
+    if any(finding.severity != "low" for finding in findings):
+        return STATUS_ATTENTION
+    return STATUS_LOW_ONLY if findings else STATUS_CLEAR
+
+
+def _without_lines_bandit_also_found(
+    findings: list[SecurityFinding], bandit_findings: list[SecurityFinding]
+) -> list[SecurityFinding]:
+    """Drop a code-pattern finding when Bandit flagged the same line.
+
+    Bandit's version names the exact rule (``B307``), so it is the one to keep.
+    """
+    bandit_lines = {(finding.path, finding.line) for finding in bandit_findings}
+    return [
+        finding
+        for finding in findings
+        if not (
+            finding.category == CATEGORY_CODE_PATTERN
+            and (finding.path, finding.line) in bandit_lines
+        )
+    ]
+
+
 def _scan_text(relative_path: str, text: str, is_code: bool) -> list[SecurityFinding]:
     findings: list[SecurityFinding] = []
+    in_tests = is_test_path(relative_path)
     for line_number, line in enumerate(text.splitlines(), start=1):
-        findings.extend(_scan_line(relative_path, line_number, line, is_code=is_code))
+        findings.extend(
+            _scan_line(relative_path, line_number, line, is_code=is_code, in_tests=in_tests)
+        )
     return findings
 
 
 def _scan_line(
-    relative_path: str, line_number: int, line: str, *, is_code: bool
+    relative_path: str, line_number: int, line: str, *, is_code: bool, in_tests: bool
 ) -> list[SecurityFinding]:
     """Apply every rule to one line and return the findings, evidence redacted."""
     findings: list[SecurityFinding] = []
+    usual_severity = "low" if in_tests else "medium"
 
     def report(category: str, kind: str, severity: str) -> None:
         findings.append(
@@ -205,18 +249,18 @@ def _scan_line(
 
     secret_kind = _match_known_secret(line)
     if secret_kind:
-        report(CATEGORY_SECRET, secret_kind, "high")
+        report(CATEGORY_SECRET, secret_kind, "high")  # A real token leaks wherever it is.
     else:
         generic = GENERIC_SECRET_PATTERN.search(line)
         if generic and looks_like_real_secret(generic.group(2)):
-            report(CATEGORY_SECRET, GENERIC_SECRET_KIND, "medium")
+            report(CATEGORY_SECRET, GENERIC_SECRET_KIND, usual_severity)
 
     if is_code:
         code_only = strip_strings_and_comments(line)
         for kind, pattern, inspect_strings in CODE_PATTERNS:
             haystack = line if inspect_strings else code_only
             if pattern.search(haystack):
-                report(CATEGORY_CODE_PATTERN, kind, "medium")
+                report(CATEGORY_CODE_PATTERN, kind, usual_severity)
     return findings
 
 
@@ -294,20 +338,36 @@ def _run_bandit(root: Path) -> tuple[list[SecurityFinding], str]:
         logger.debug("Bandit could not be run: %s", error)
         return [], "Bandit could not be run; run `bandit -r .` manually for details."
 
-    findings = [
-        SecurityFinding(
-            path=_relative_to_root(str(issue.get("filename", "")), root),
-            line=int(issue.get("line_number", 0)),
-            category=CATEGORY_BANDIT,
-            kind=f"Bandit {issue.get('test_id', '')}: {issue.get('issue_text', '')}".strip(),
-            severity=str(issue.get("issue_severity", "medium")).lower(),
-            evidence=redact_secrets(str(issue.get("code", "")).strip())[:MAX_EVIDENCE_CHARS],
-        )
-        for issue in payload.get("results", [])
-    ]
+    findings = [_bandit_finding(issue, root) for issue in payload.get("results", [])]
     return findings, (
         f"Bandit ran on Python files (medium and high severity): {len(findings)} issue(s)."
     )
+
+
+def _bandit_finding(issue: dict[str, Any], root: Path) -> SecurityFinding:
+    """One entry of Bandit's JSON ``results``, in WinterSolve's own shape."""
+    path = _relative_to_root(str(issue.get("filename", "")), root)
+    line = int(issue.get("line_number", 0))
+    severity = "low" if is_test_path(path) else str(issue.get("issue_severity", "medium")).lower()
+    evidence = redact_secrets(_flagged_line(str(issue.get("code", "")), line))
+    return SecurityFinding(
+        path=path,
+        line=line,
+        category=CATEGORY_BANDIT,
+        kind=f"Bandit {issue.get('test_id', '')}: {issue.get('issue_text', '')}".strip(),
+        severity=severity,
+        evidence=evidence[:MAX_EVIDENCE_CHARS],
+    )
+
+
+def _flagged_line(code: str, line_number: int) -> str:
+    """Bandit quotes numbered lines of context; keep only the line it flagged."""
+    context = code.strip().splitlines()
+    for numbered in context:
+        number, _, source = numbered.strip().partition(" ")
+        if number == str(line_number):
+            return source.strip()
+    return context[0].strip() if context else ""
 
 
 def _relative_to_root(filename: str, root: Path) -> str:

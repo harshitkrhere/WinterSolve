@@ -201,6 +201,28 @@ HYGIENE_FILE_STEMS = {
 }
 # In order of preference when a project has more than one spelling.
 HYGIENE_FILE_SUFFIXES = (".md", ".markdown", ".rst", ".txt", "")
+# GitHub shows these community files from the root, ``.github/``, or ``docs/``,
+# so a project that keeps CONTRIBUTING.md in ``.github/`` does have one.
+# LICENSE and CHANGELOG are only conventional at the root.
+COMMUNITY_FILE_FOLDERS = (".github", "docs")
+ACCEPTED_OUTSIDE_ROOT = frozenset({"README", "CONTRIBUTING", "SECURITY", "CODE_OF_CONDUCT"})
+
+# Where tests live, by directory name or file name.
+TEST_DIRECTORY_NAMES = frozenset({"test", "tests", "spec", "__tests__"})
+TEST_FILE_ENDINGS = (
+    "_test.py",
+    "_test.go",
+    ".test.js",
+    ".test.jsx",
+    ".test.ts",
+    ".test.tsx",
+    ".spec.js",
+    ".spec.jsx",
+    ".spec.ts",
+    ".spec.tsx",
+    "_spec.rb",
+)
+TEST_PREFIX_EXTENSIONS = frozenset({".py", ".js", ".ts", ".tsx", ".go", ".rs", ".rb", ".java"})
 
 
 @dataclass(frozen=True)
@@ -293,6 +315,37 @@ def find_hygiene_files(root_file_names: Iterable[str]) -> dict[str, str]:
             if path.stem.upper() in stems:
                 found.setdefault(canonical, name)
     return found
+
+
+def find_community_files(relative_files: Iterable[str]) -> dict[str, str]:
+    """Like ``find_hygiene_files``, but for a whole project listing.
+
+    Files at the root win. ``.github/`` and ``docs/`` are also searched for the
+    files GitHub accepts there. Values are relative paths such as
+    ``docs/contributing.rst``.
+    """
+    names_by_folder: dict[str, list[str]] = {}
+    for relative_path in relative_files:
+        folder, _, name = relative_path.rpartition("/")
+        names_by_folder.setdefault(folder, []).append(name)
+
+    found = find_hygiene_files(names_by_folder.get("", []))
+    for folder in COMMUNITY_FILE_FOLDERS:
+        for canonical, name in find_hygiene_files(names_by_folder.get(folder, [])).items():
+            if canonical in ACCEPTED_OUTSIDE_ROOT:
+                found.setdefault(canonical, f"{folder}/{name}")
+    return found
+
+
+def is_test_path(relative_path: str) -> bool:
+    """Whether a file or directory is test code, judged by its directory or file name."""
+    parts = relative_path.lower().split("/")
+    name = parts[-1]
+    return (
+        any(part in TEST_DIRECTORY_NAMES for part in parts)
+        or name.endswith(TEST_FILE_ENDINGS)
+        or (name.startswith("test_") and Path(name).suffix in TEST_PREFIX_EXTENSIONS)
+    )
 
 
 def is_probably_text(path: Path, size: int | None = None) -> bool:

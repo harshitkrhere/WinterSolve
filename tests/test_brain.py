@@ -8,6 +8,7 @@ from wintersolve.modules.brain import build_brain_report
 from wintersolve.modules.recommendations import (
     build_brain_recommendations,
     build_brain_risks,
+    build_docs_health,
     build_next_actions,
 )
 from wintersolve.modules.scanner import scan_project
@@ -113,11 +114,45 @@ class TestRecommendationRules:
         )
         assert any("shell=True" in r for r in recommendations)
 
+    def test_low_severity_findings_do_not_drive_the_advice(self, python_project: Path) -> None:
+        scan = scan_project(python_project)
+        security = summary(finding("code-pattern", "eval() call", "low"))
+
+        risks = build_brain_risks(scan, security, command_count=2)
+        recommendations = build_brain_recommendations(scan, security, command_count=2)
+        actions = build_next_actions(security, command_count=2, has_architecture=True)
+
+        assert not any("risky code pattern" in risk for risk in risks)
+        assert not any("eval()" in recommendation for recommendation in recommendations)
+        assert not any("security" in action for action in actions)
+
     def test_no_commands_is_called_out(self, empty_project: Path) -> None:
         scan = scan_project(empty_project)
 
         risks = build_brain_risks(scan, summary(), command_count=0)
+        recommendations = build_brain_recommendations(scan, summary(), command_count=0)
         actions = build_next_actions(summary(), command_count=0, has_architecture=False)
 
         assert "No setup, test, build, or run commands were detected." in risks
+        assert "No clear source directory was detected." in risks
+        assert "Document setup, run, build, and test commands in README.md." in recommendations
         assert actions[0].startswith("Add documented setup and test commands")
+
+    def test_medium_findings_ask_for_review_and_count_as_risks(self, python_project: Path) -> None:
+        scan = scan_project(python_project)
+        security = summary(finding("code-pattern", "eval() call"), finding("bandit", "B307"))
+
+        risks = build_brain_risks(scan, security, command_count=1)
+        actions = build_next_actions(security, command_count=1, has_architecture=False)
+
+        assert any(risk.startswith("1 risky code pattern(s) found") for risk in risks)
+        assert "Bandit reported 1 medium or high severity issue(s)." in risks
+        assert (
+            actions[0] == "Review the security findings before sharing this repository or report."
+        )
+
+    def test_docs_health_names_missing_sections_and_files(self) -> None:
+        assert build_docs_health(["Usage"], ["LICENSE"]) == [
+            "README is missing sections: Usage.",
+            "Missing project hygiene files: LICENSE.",
+        ]

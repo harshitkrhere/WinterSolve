@@ -63,6 +63,10 @@ Or with `jq`:
 wintersolve brain . -f json | jq -e '[.security.findings[] | select(.severity == "high")] | length == 0'
 ```
 
+Findings in test code are rated `low`, so test fixtures and a test-only
+`eval()` do not fail the build. A real token format (an AWS key, a GitHub
+token) is `high` wherever it is, tests included.
+
 ## Pipe errors straight into `debug`
 
 ```bash

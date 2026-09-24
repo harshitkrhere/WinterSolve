@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from wintersolve.modules.brain import build_brain_report
 from wintersolve.modules.debugger import analyze_error_text
 from wintersolve.modules.docs_assistant import suggest_docs
 from wintersolve.modules.explainer import explain_file
 from wintersolve.modules.scanner import scan_project
 from wintersolve.report import (
+    render_brain_report,
     render_debug_analysis,
     render_docs_suggestions,
     render_explanation,
@@ -57,3 +59,34 @@ class TestOtherRenderers:
         docs = render_docs_suggestions(suggest_docs(python_project), include_draft=True)
         assert "README Draft:" in docs
         assert "# Demo" in docs
+
+
+class TestBrainRenderers:
+    def test_markdown_has_every_section(self, python_project: Path) -> None:
+        report = build_brain_report(python_project, run_bandit=False)
+
+        markdown = render_brain_report(report, output_format="markdown")
+
+        assert markdown.startswith("# WinterSolve Repo Brain\n")
+        for heading in (
+            "Languages",
+            "Detected Stack",
+            "Source Layout",
+            "Test Layout",
+            "Documentation Health",
+            "Detected Commands",
+            "Architecture Map",
+            "Security and Privacy",
+            "Risks",
+            "Recommendations",
+            "Next Actions",
+        ):
+            assert f"## {heading}\n" in markdown
+
+    def test_root_level_source_is_spelled_out(self, tmp_path: Path) -> None:
+        write(tmp_path / "go.mod", "module example.com/demo\n")
+        write(tmp_path / "main.go", "package main\n")
+
+        text = render_brain_report(build_brain_report(tmp_path, run_bandit=False))
+
+        assert "Source layout:\n  - . (repository root)" in text
