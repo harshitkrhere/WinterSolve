@@ -6,6 +6,8 @@ All notable changes to WinterSolve are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-24
+
 Found by running every command on Express, Cobra, and Flask and fixing what
 read wrong.
 
@@ -168,6 +170,7 @@ Internal milestone (never published).
 - Initial offline-first Repo Brain, scan, explain, debug, docs, review, and
   security workflows.
 
-[Unreleased]: https://github.com/harshitkrhere/WinterSolve/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/harshitkrhere/WinterSolve/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/harshitkrhere/WinterSolve/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/harshitkrhere/WinterSolve/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/harshitkrhere/WinterSolve/releases/tag/v0.3.0
