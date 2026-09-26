@@ -478,6 +478,25 @@ KOTLIN_RULES = LanguageRules(
     ),
 )
 
+SWIFT_MODIFIERS = r"(?:(?:public|internal|private|fileprivate|open|final|indirect|nonisolated)\s+)*"
+SWIFT_RULES = LanguageRules(
+    comment_prefixes=C_STYLE_COMMENTS,
+    imports=(re.compile(r"^\s*(?:@testable\s+|@_exported\s+)?import\s+([\w.]+)", re.MULTILINE),),
+    symbols=(
+        (
+            "type",
+            re.compile(
+                SWIFT_MODIFIERS + r"(?P<kind>class|struct|enum|protocol|extension|actor)\s+"
+                r"(?P<name>[\w.]+)"
+            ),
+        ),
+        (
+            "func",
+            re.compile(SWIFT_MODIFIERS + r"func\s+(?P<name>\w+)(?:<[^>]*>)?\s*\("),
+        ),
+    ),
+)
+
 CSHARP_RULES = LanguageRules(
     comment_prefixes=C_STYLE_COMMENTS,
     imports=(re.compile(r"^\s*(?:global\s+)?using\s+(?:static\s+)?([\w.]+)\s*;", re.MULTILINE),),
@@ -671,6 +690,7 @@ ANALYZERS: dict[str, Callable[[str, Path], FileStructure]] = {
     "Rust": _pattern_analyzer(RUST_RULES),
     "Java": _pattern_analyzer(JAVA_RULES),
     "Kotlin": _pattern_analyzer(KOTLIN_RULES),
+    "Swift": _pattern_analyzer(SWIFT_RULES),
     "C#": _pattern_analyzer(CSHARP_RULES),
     "C": _pattern_analyzer(C_RULES),
     "C++": _pattern_analyzer(C_RULES),
