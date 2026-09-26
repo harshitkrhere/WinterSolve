@@ -6,6 +6,10 @@ All notable changes to WinterSolve are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `explain` now lists Swift imports and top-level types and functions.
+
 ## [0.4.0] - 2026-09-24
 
 Found by running every command on Express, Cobra, and Flask and fixing what

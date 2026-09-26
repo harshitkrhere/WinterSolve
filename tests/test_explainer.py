@@ -174,6 +174,34 @@ class TestGo:
 
 
 class TestOtherLanguages:
+    def test_swift_imports_and_top_level_definitions(self, tmp_path: Path) -> None:
+        source = (
+            "// import NotARealModule\n"
+            "import Foundation\n"
+            "@testable import AppCore\n"
+            "public struct User {\n"
+            "    func nested() {}\n"
+            "}\n"
+            "final class Store {}\n"
+            "enum State {}\n"
+            "protocol Persistable {}\n"
+            "extension User {}\n"
+            "func load<T>() {}\n"
+        )
+
+        result = explain_file(write(tmp_path / "User.swift", source))
+
+        assert result.language == "Swift"
+        assert result.imports == ["AppCore", "Foundation"]
+        assert result.symbols == [
+            "struct User",
+            "class Store",
+            "enum State",
+            "protocol Persistable",
+            "extension User",
+            "func load",
+        ]
+
     def test_rust(self, tmp_path: Path) -> None:
         source = (
             "//! Parses configuration files for the server.\n"
@@ -276,10 +304,10 @@ class TestOtherLanguages:
         ]
 
     def test_languages_without_patterns_say_so(self, tmp_path: Path) -> None:
-        result = explain_file(write(tmp_path / "App.swift", "import UIKit\nclass App {}\n"))
+        result = explain_file(write(tmp_path / "App.dart", "import 'dart:core';\nclass App {}\n"))
 
         assert result.symbols == []
-        assert "Definitions and imports are not detected for Swift files yet." in result.summary
+        assert "Definitions and imports are not detected for Dart files yet." in result.summary
         assert result.risks == ["No obvious file-level risks were detected."]
 
 
