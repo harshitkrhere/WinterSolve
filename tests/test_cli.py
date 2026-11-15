@@ -210,5 +210,5 @@ class TestDocsReviewWorkflows:
         result = runner.invoke(app, ["workflows"])
 
         assert result.exit_code == 0
-        for name in ("brain", "scan", "explain", "debug", "docs", "review"):
+        for name in ("brain", "scan", "explain", "debug", "docs", "review", "workflows"):
             assert name in result.output

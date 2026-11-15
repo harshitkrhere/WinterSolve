@@ -8,6 +8,14 @@ from .conftest import write
 
 
 class TestSuggestDocs:
+    def test_opening_paragraph_counts_as_overview(self, tmp_path: Path) -> None:
+        write(
+            tmp_path / "README.md",
+            "# Demo\n\nA small tool that explains code repositories locally.\n\n## Installation\n",
+        )
+
+        assert "Overview" not in suggest_docs(tmp_path).missing_sections
+
     def test_sections_are_detected_from_headings_with_synonyms(self, tmp_path: Path) -> None:
         write(
             tmp_path / "README.md",

@@ -78,7 +78,7 @@ def _package_json_commands(root: Path) -> list[CommandCandidate]:
     ]
     try:
         data = json.loads(read_text_file(manifest))
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, OSError):
         return commands
 
     scripts = data.get("scripts", {}) if isinstance(data, dict) else {}
@@ -122,7 +122,10 @@ def _python_commands(root: Path) -> list[CommandCandidate]:
             ]
         return []
 
-    text = read_text_file(pyproject)
+    try:
+        text = read_text_file(pyproject)
+    except OSError:
+        return []
     commands: list[CommandCandidate] = []
     if (root / "uv.lock").exists():
         commands.append(CommandCandidate("install", "uv sync", "uv.lock", "high"))
@@ -189,7 +192,11 @@ def _makefile_commands(path: Path) -> list[CommandCandidate]:
     if not path.exists():
         return []
     commands: list[CommandCandidate] = []
-    for line in read_text_file(path).splitlines():
+    try:
+        content = read_text_file(path)
+    except OSError:
+        return []
+    for line in content.splitlines():
         match = MAKEFILE_TARGET.match(line)
         if not match:
             continue
@@ -214,7 +221,11 @@ def _readme_commands(path: Path) -> list[CommandCandidate]:
         return []
     commands: list[CommandCandidate] = []
     in_code_block = False
-    for raw_line in read_text_file(path).splitlines():
+    try:
+        content = read_text_file(path)
+    except OSError:
+        return []
+    for raw_line in content.splitlines():
         line = raw_line.strip()
         if line.startswith("```"):
             in_code_block = not in_code_block

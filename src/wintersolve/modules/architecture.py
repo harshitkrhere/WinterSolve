@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from wintersolve.models import ArchitectureSection
-from wintersolve.project import walk_project
+from wintersolve.project import ProjectTree, walk_project
 
 # Conventional directory names and the role they usually play. Anything else
 # gets a neutral description rather than a guess.
@@ -52,9 +52,9 @@ MAX_SECTIONS = 20
 MAX_NOTABLE_FILES = 8
 
 
-def map_architecture(root: Path) -> list[ArchitectureSection]:
+def map_architecture(root: Path, *, tree: ProjectTree | None = None) -> list[ArchitectureSection]:
     """Group files by top-level directory and describe each group."""
-    tree = walk_project(root)
+    tree = tree if tree is not None else walk_project(root)
     files_by_area: dict[str, list[str]] = {}
     for project_file in tree.files:
         top_level, separator, _ = project_file.relative_path.partition("/")

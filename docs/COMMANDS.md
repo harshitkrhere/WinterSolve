@@ -17,6 +17,7 @@ given version supports. Global flags: `--version` / `-V` prints the version;
 | `0` | Success. |
 | `1` | The analysis itself failed (unreadable input, unexpected error). |
 | `2` | Invalid usage, or the target could not be analyzed (missing path, no Git repository, unknown format). |
+| `130` | Interrupted with Ctrl+C. |
 
 Reports go to **stdout**; errors and logs go to **stderr**, so piping JSON into
 another tool is always safe.
@@ -35,6 +36,8 @@ wintersolve brain . --no-bandit          # skip the optional Bandit pass
 | `--format`, `-f` | `text` | `text`, `markdown`, or `json`. |
 | `--output`, `-o` | stdout | Write the report to a file instead. |
 | `--no-bandit` | off | Skip Bandit. Useful on large Python repositories or when Bandit is not installed. |
+| `--progress`, `--no-progress` | automatic | Show elapsed stages and file counts on stderr. Automatic mode shows progress on terminals and stays quiet in pipelines. |
+| `--read-workers` | `8` | Concurrent security file reads; choose `1` for serial reads, or up to `32`. |
 
 Sections: identity, languages, detected stack, source and test layout,
 documentation health, detected commands, architecture map, security and
@@ -155,5 +158,10 @@ or `bandit`), `kind`, `severity` (`high`, `medium`, `low`), and redacted
 `evidence`. Branch on `category`; `kind` is the human label. Findings in test
 code are `low`; see [SECURITY_MODEL.md](SECURITY_MODEL.md) for the full rule.
 
-`security.status` is `clear` (no findings), `low-severity findings only`, or
-`attention needed` (at least one `medium` or `high`).
+`security.status` is `clear` (no findings or skipped checks), `low-severity
+findings only`, `attention needed` (at least one `medium` or `high`), or
+`partial` (some files or checks were skipped, with no medium/high finding).
+`security.skipped_files` counts omitted files; `security.skipped_reasons` also
+records incomplete checks and directories that could not be inspected. The
+additive fields keep schema version `1` compatible. A report with `partial`
+status still exits `0`; automation should inspect the status field.

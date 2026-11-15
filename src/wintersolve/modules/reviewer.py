@@ -63,14 +63,16 @@ def review_changes(path: Path) -> ReviewResult:
 
 
 def _git_status(path: Path) -> str | None:
-    """Return ``git status --short`` output, or None when Git cannot answer."""
+    """Return NUL-delimited porcelain status, or None when Git cannot answer."""
     try:
         completed = subprocess.run(  # fixed argv, never a shell
-            ["git", "status", "--short", "--untracked-files=all"],
+            ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"],
             cwd=path,
             check=False,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="surrogateescape",
             timeout=GIT_TIMEOUT_SECONDS,
         )
     except (OSError, subprocess.TimeoutExpired):
@@ -79,16 +81,30 @@ def _git_status(path: Path) -> str | None:
 
 
 def _parse_changed_files(status_output: str) -> list[str]:
-    """Extract paths from porcelain short status, following renames to the new name."""
-    files: list[str] = []
+    """Extract paths from porcelain status, preserving unusual filenames."""
+    if "\0" in status_output:
+        entries = status_output.rstrip("\0").split("\0")
+        files: list[str] = []
+        index = 0
+        while index < len(entries):
+            entry = entries[index]
+            if len(entry) >= len("XY "):
+                files.append(entry[3:])
+                if "R" in entry[:2] or "C" in entry[:2]:
+                    index += 1  # the following NUL field is the old path
+            index += 1
+        return files
+
+    # Retain support for callers of the old text parser.
+    legacy_files: list[str] = []
     for line in status_output.splitlines():
         if not line.strip():
             continue
         entry = line[3:].strip()
         if " -> " in entry:
             entry = entry.split(" -> ")[-1]
-        files.append(entry.strip('"'))
-    return files
+        legacy_files.append(entry.strip('"'))
+    return legacy_files
 
 
 def _build_risks(changed_files: list[str]) -> list[str]:

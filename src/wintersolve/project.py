@@ -8,8 +8,9 @@ live in exactly one place.
 from __future__ import annotations
 
 import os
-from collections.abc import Iterable
-from dataclasses import dataclass
+import stat
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass, field
 from pathlib import Path
 
 # Directories that are never worth analyzing: version control internals,
@@ -57,6 +58,7 @@ IGNORED_DIRECTORIES = frozenset(
 
 # Generated directories are also recognisable by suffix (``wintersolve.egg-info``).
 IGNORED_DIRECTORY_SUFFIXES = (".egg-info", ".dist-info")
+IGNORED_DIRECTORY_PREFIXES = (".next-",)
 
 # Programming and markup languages we count when describing a repository.
 LANGUAGE_BY_EXTENSION = {
@@ -245,9 +247,17 @@ class ProjectTree:
     root: Path
     files: list[ProjectFile]
     directories: list[str]
+    skipped: dict[str, int] = field(default_factory=dict)
 
 
-def walk_project(root: Path) -> ProjectTree:
+def _is_reparse_point(info: os.stat_result) -> bool:
+    """Windows junctions and other reparse points must not expand the walk."""
+    return bool(getattr(info, "st_file_attributes", 0) & 0x400)
+
+
+def walk_project(
+    root: Path, *, progress: Callable[[str, int | None], None] | None = None
+) -> ProjectTree:
     """Walk ``root`` once, skipping ignored directories entirely.
 
     Symbolic links to directories are not followed, which keeps the walk
@@ -258,10 +268,31 @@ def walk_project(root: Path) -> ProjectTree:
     if not root.is_dir():
         return ProjectTree(root=root, files=files, directories=directories)
 
-    for current, dirnames, filenames in os.walk(root):
+    skipped: dict[str, int] = {}
+
+    def skip(reason: str) -> None:
+        skipped[reason] = skipped.get(reason, 0) + 1
+
+    def on_error(_error: OSError) -> None:
+        skip("inaccessible directory")
+
+    for current, dirnames, filenames in os.walk(root, onerror=on_error):
         # Editing ``dirnames`` in place is how os.walk lets callers prune.
-        dirnames[:] = sorted(name for name in dirnames if not is_ignored_directory(name))
         current_path = Path(current)
+        safe_dirs = []
+        for name in dirnames:
+            if is_ignored_directory(name):
+                continue
+            try:
+                info = (current_path / name).lstat()
+            except OSError:
+                skip("inaccessible directory")
+                continue
+            if stat.S_ISLNK(info.st_mode) or _is_reparse_point(info):
+                skip("linked directory")
+                continue
+            safe_dirs.append(name)
+        dirnames[:] = sorted(safe_dirs)
 
         for name in dirnames:
             directories.append((current_path / name).relative_to(root).as_posix())
@@ -269,18 +300,27 @@ def walk_project(root: Path) -> ProjectTree:
         for name in filenames:
             path = current_path / name
             try:
-                size = path.stat().st_size
+                info = path.lstat()
             except OSError:
-                # Broken symlink or a file that vanished mid-scan. Not worth
-                # failing the whole report over.
+                skip("inaccessible file metadata")
+                continue
+            if stat.S_ISLNK(info.st_mode) or _is_reparse_point(info):
+                skip("linked file")
+                continue
+            if not stat.S_ISREG(info.st_mode):
+                skip("special file")
                 continue
             files.append(
-                ProjectFile(path=path, relative_path=path.relative_to(root).as_posix(), size=size)
+                ProjectFile(
+                    path=path, relative_path=path.relative_to(root).as_posix(), size=info.st_size
+                )
             )
+            if progress and len(files) % 500 == 0:
+                progress("Discovering files", len(files))
 
     files.sort(key=lambda file: file.relative_path)
     directories.sort()
-    return ProjectTree(root=root, files=files, directories=directories)
+    return ProjectTree(root=root, files=files, directories=directories, skipped=skipped)
 
 
 def iter_project_files(root: Path) -> list[ProjectFile]:
@@ -290,7 +330,11 @@ def iter_project_files(root: Path) -> list[ProjectFile]:
 
 def is_ignored_directory(name: str) -> bool:
     """Whether a directory *name* (not path) should be skipped during a walk."""
-    return name in IGNORED_DIRECTORIES or name.endswith(IGNORED_DIRECTORY_SUFFIXES)
+    return (
+        name in IGNORED_DIRECTORIES
+        or name.endswith(IGNORED_DIRECTORY_SUFFIXES)
+        or name.startswith(IGNORED_DIRECTORY_PREFIXES)
+    )
 
 
 def find_hygiene_files(root_file_names: Iterable[str]) -> dict[str, str]:
@@ -362,9 +406,35 @@ def is_code_file(path: Path) -> bool:
     return path.suffix.lower() in CODE_EXTENSIONS
 
 
-def read_text_file(path: Path) -> str:
+def read_text_file(path: Path, *, max_bytes: int | None = None) -> str:
     """Read a file as UTF-8, replacing undecodable bytes instead of crashing."""
-    return path.read_text(encoding="utf-8", errors="replace")
+    # O_NOFOLLOW closes the final-component symlink race on POSIX. Windows
+    # reparse points are checked before opening; a concurrent replacement can
+    # still race that check on Windows, so callers must treat untrusted trees
+    # accordingly.
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or _is_reparse_point(info):
+        raise OSError(f"Not a regular project file: {path}")
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    with os.fdopen(descriptor, "rb") as stream:
+        opened = os.fstat(stream.fileno())
+        if not stat.S_ISREG(opened.st_mode) or _is_reparse_point(opened):
+            raise OSError(f"Not a regular project file: {path}")
+        if (opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns) != (
+            info.st_dev,
+            info.st_ino,
+            info.st_size,
+            info.st_mtime_ns,
+        ):
+            raise OSError(f"File changed before reading: {path}")
+        content = stream.read(max_bytes + 1 if max_bytes is not None else -1)
+        if max_bytes is not None and len(content) > max_bytes:
+            raise OSError(f"File grew beyond size limit: {path}")
+        finished = os.fstat(stream.fileno())
+        if (opened.st_size, opened.st_mtime_ns) != (finished.st_size, finished.st_mtime_ns):
+            raise OSError(f"File changed while reading: {path}")
+        return content.decode("utf-8", errors="replace")
 
 
 def resolve_project_path(root: Path, candidate: str) -> Path:

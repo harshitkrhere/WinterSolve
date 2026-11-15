@@ -15,6 +15,7 @@ from typing import Any
 from wintersolve.logging_config import get_logger
 from wintersolve.project import (
     LANGUAGE_BY_EXTENSION,
+    ProjectTree,
     find_community_files,
     is_code_file,
     is_test_path,
@@ -116,7 +117,7 @@ RECOMMENDED_FILES = {
 # Directory names that conventionally hold source code. Deeply nested packages
 # are noise in an overview, so listing stops at ``src/<package>/<subpackage>``.
 SOURCE_ROOT_NAMES = frozenset(
-    {"src", "app", "lib", "packages", "services", "cmd", "internal", "pkg"}
+    {"src", "app", "apps", "lib", "packages", "services", "cmd", "internal", "pkg"}
 )
 MAX_SOURCE_PATH_DEPTH = 3
 # Top-level folders that may hold an ``__init__.py`` without being the product.
@@ -157,14 +158,14 @@ class ScanResult:
         return data
 
 
-def scan_project(path: Path) -> ScanResult:
+def scan_project(path: Path, *, tree: ProjectTree | None = None) -> ScanResult:
     """Scan a project directory and summarise its shape, stack, and hygiene."""
     logger.debug("Scanning project at %s", path)
     if not path.is_dir():
         logger.warning("Project path does not exist or is not a directory: %s", path)
         return _missing_project(path)
 
-    tree = walk_project(path)
+    tree = tree if tree is not None else walk_project(path)
     relative_files = {file.relative_path for file in tree.files}
     relative_dirs = set(tree.directories)
     top_level_entries = relative_files | relative_dirs
@@ -193,6 +194,12 @@ def scan_project(path: Path) -> ScanResult:
         missing_recommended_files=missing_recommended_files,
         likely_test_paths=likely_test_paths,
     )
+    if tree.skipped:
+        risks.append(
+            "Some filesystem entries could not be inventoried: "
+            + ", ".join(f"{reason} ({count})" for reason, count in sorted(tree.skipped.items()))
+            + "."
+        )
     recommendations = _build_recommendations(
         frameworks=frameworks,
         missing_recommended_files=missing_recommended_files,

@@ -23,6 +23,15 @@ class TestParseChangedFiles:
 
         assert _parse_changed_files(status) == ["src/app.py", "new.py", "has space.md"]
 
+    def test_nul_status_preserves_unicode_and_arrow_in_filenames(self) -> None:
+        status = "?? has -> arrow.py\0?? ünicode file.py\0R  new name.py\0old name.py\0"
+
+        assert _parse_changed_files(status) == [
+            "has -> arrow.py",
+            "ünicode file.py",
+            "new name.py",
+        ]
+
 
 @pytest.mark.skipif(GIT is None, reason="git not installed")
 class TestReviewChanges:
@@ -52,6 +61,14 @@ class TestReviewChanges:
 
         assert result.changed_files == []
         assert result.risks == ["No local changes were detected."]
+
+    def test_unusual_untracked_filename_is_preserved(self, tmp_path: Path) -> None:
+        git(tmp_path, "init", "-q")
+        write(tmp_path / "ünicode name.py", "x = 1\n")
+
+        result = review_changes(tmp_path)
+
+        assert result.changed_files == ["ünicode name.py"]
 
 
 class TestWithoutGit:

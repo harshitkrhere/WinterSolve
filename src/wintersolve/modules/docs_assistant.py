@@ -15,6 +15,7 @@ from wintersolve.modules.scanner import RECOMMENDED_FILES, ScanResult, scan_proj
 from wintersolve.project import COMMUNITY_FILE_FOLDERS, find_community_files, read_text_file
 
 MAX_SECTION_SUGGESTIONS = 8
+MIN_INTRO_WORDS = 5
 
 # Canonical section name -> words that count as that section when they appear
 # in a heading. Matching is case-insensitive.
@@ -66,7 +67,7 @@ def suggest_docs(path: Path, scan: ScanResult | None = None) -> DocsSuggestion:
     """Check README structure and hygiene files, and draft a README skeleton."""
     if scan is None:
         scan = scan_project(path)
-    readme_text = _read_readme(path)
+    readme_text, readme_unreadable = _read_readme(path)
 
     headings = readme_headings(readme_text)
     files_present = {
@@ -78,6 +79,7 @@ def suggest_docs(path: Path, scan: ScanResult | None = None) -> DocsSuggestion:
         section
         for section, keywords in EXPECTED_README_SECTIONS.items()
         if not any(keyword in heading for heading in headings for keyword in keywords)
+        and not (section == "Overview" and has_readme_introduction(readme_text))
         and SECTIONS_COVERED_BY_FILES.get(section) not in files_present
     ]
     project_name = readme_title(readme_text) or path.name
@@ -85,23 +87,38 @@ def suggest_docs(path: Path, scan: ScanResult | None = None) -> DocsSuggestion:
     return DocsSuggestion(
         path=path,
         missing_sections=missing_sections,
-        suggestions=_build_suggestions(scan.missing_recommended_files, missing_sections),
+        suggestions=[
+            *(
+                ["README exists but could not be read; check its permissions or link target."]
+                if readme_unreadable
+                else []
+            ),
+            *_build_suggestions(scan.missing_recommended_files, missing_sections),
+        ],
         readme_draft=_build_readme_draft(project_name, scan.frameworks, scan.languages),
     )
 
 
-def _read_readme(project: Path) -> str:
+def _read_readme(project: Path) -> tuple[str, bool]:
     """Read the README GitHub would show: any common spelling, at the root, .github/, or docs/."""
     folders = [project, *(project / name for name in COMMUNITY_FILE_FOLDERS)]
-    listing = [
-        entry.relative_to(project).as_posix()
-        for folder in folders
-        if folder.is_dir()
-        for entry in folder.iterdir()
-        if entry.is_file()
-    ]
+    listing: list[str] = []
+    for folder in folders:
+        try:
+            listing.extend(
+                entry.relative_to(project).as_posix()
+                for entry in folder.iterdir()
+                if entry.is_file()
+            )
+        except (OSError, FileNotFoundError):
+            continue
     readme = find_community_files(listing).get("README")
-    return read_text_file(project / readme) if readme else ""
+    if not readme:
+        return "", False
+    try:
+        return read_text_file(project / readme), False
+    except OSError:
+        return "", True
 
 
 def readme_headings(markdown: str) -> list[str]:
@@ -115,6 +132,25 @@ def readme_title(markdown: str) -> str | None:
         if level == 1:
             return text
     return None
+
+
+def has_readme_introduction(markdown: str) -> bool:
+    """A substantial opening paragraph can serve as the overview section."""
+    lines = markdown.splitlines()
+    start = 0
+    if lines and ATX_HEADING.match(lines[0]):
+        start = 1
+    elif len(lines) > 1 and UNDERLINE.match(lines[1]):
+        start = 2
+    for line in lines[start:]:
+        stripped = line.strip()
+        if ATX_HEADING.match(line) or UNDERLINE.match(line):
+            break
+        if stripped.startswith(("-", "*", "+", ">", "|", "[", "<", "!")):
+            continue
+        if len(stripped.split()) >= MIN_INTRO_WORDS:
+            return True
+    return False
 
 
 def markdown_headings(markdown: str) -> list[tuple[int, str]]:

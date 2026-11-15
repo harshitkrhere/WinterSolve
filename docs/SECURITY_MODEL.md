@@ -5,8 +5,9 @@ behaviour has to be predictable.
 
 ## What WinterSolve does
 
-- Reads files under the directory you point it at, skipping version-control
-  internals, caches, virtual environments, and dependency folders.
+- Reads recognised text files under the directory you point it at, skipping
+  version-control internals, caches, virtual environments, dependency folders,
+  and generated directories such as `.next` and `.next-*`.
 - Runs `git status --short` for `review`, and optionally `bandit` for `brain`
   when Bandit is installed and the project contains Python files.
 - Writes a report to stdout or to the file you name with `--output`.
@@ -22,9 +23,10 @@ behaviour has to be predictable.
 ## Redaction
 
 Every evidence line in a security finding passes through `redact_secrets`
-before it is stored, so reports are safe to paste into issues. Well-known
-token formats become `<redacted-secret>`; `name = value` assignments become
-`name=<redacted>`.
+before it is stored. Recognized token formats become `<redacted-secret>`;
+recognized `name = value` assignments become `name=<redacted>`. These are
+heuristics, so review a report before sharing it: unknown credential formats
+or values outside finding evidence may remain visible.
 
 ## How the security scan works
 
@@ -33,7 +35,7 @@ token formats become `<redacted-secret>`; `name = value` assignments become
 | Known token formats (AWS, GitHub, Stripe, Slack, OpenAI, Anthropic, Google, SendGrid, PEM keys) | regex | `high`, everywhere | every text file, including docs, tests, and `.env*` |
 | Hardcoded secret-like assignments (`DB_PASSWORD = "..."`) | regex + guard | `medium`; `low` in test code | every text file |
 | Risky code patterns (`eval`/`exec`, `shell=True`, `pickle`/`yaml.load`, SQL built from request data) | regex on code with strings and comments blanked | `medium`; `low` in test code | source files only |
-| Bandit | subprocess, medium severity and above | Bandit's own; `low` in test code | Python files, dependency folders excluded |
+| Bandit | subprocess, medium severity and above | Bandit's own; `low` in test code | Python files from the same discovered inventory |
 
 The guard for secret-like assignments rejects placeholders (`changeme`,
 `<your-key>`, `${VAR}`) and code expressions (`self.config.api_key`,
@@ -50,8 +52,31 @@ When Bandit and a built-in pattern flag the same line, only Bandit's finding is
 kept, because it names the exact rule (`B307`, `B102`). Evidence is the flagged
 line only.
 
-The report's `status` is `clear` when nothing was found, `low-severity
-findings only` when every finding is `low`, and `attention needed` otherwise.
+The report's `status` is `clear` when nothing was found and no eligible checks
+were skipped, `low-severity findings only` when every finding is `low`,
+`attention needed` for medium or high findings, and `partial` when coverage is
+incomplete without a medium or high finding. `skipped_files` counts individual
+files omitted, while `skipped_reasons` also records linked or inaccessible
+directories, replaced invalid UTF-8 bytes, and unavailable or failed Bandit
+runs. Generated and dependency folders are excluded by policy;
+their contents are not part of the claimed scan scope. Bandit is optional and
+the notes say whether it ran.
+
+Security file reads use eight workers by default, with at most 64 files queued
+per batch. `brain --read-workers 1` selects serial reads for storage where
+concurrency is unhelpful. Findings are sorted after scanning so worker timing
+does not alter report order.
+
+Links and Windows reparse points are excluded during discovery. On POSIX,
+opening a text file also refuses a final symlink. On Windows, a malicious
+process that replaces a regular file with a link between the check and open
+can still race this safeguard; do not run WinterSolve on a tree being actively
+modified by an untrusted process. Bandit opens the selected paths in a separate
+process, so a concurrent untrusted writer can also replace those paths after
+discovery on any platform. WinterSolve rechecks each Bandit target before
+launch, runs Bandit from a fresh temporary directory outside the project, and
+removes `PYTHONPATH` from its environment so a project-owned `bandit.py` cannot
+replace the installed tool through the ordinary module search path.
 
 Findings are leads, not verdicts, and the report says so. Confirm each one
 in context before acting on it.

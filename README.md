@@ -79,7 +79,7 @@ Architecture map:
 Security and privacy:
   - Status: clear
   - Files checked: 86
-  - Secret-like values are redacted before they appear in any report.
+  - Recognized secrets are redacted from security finding evidence.
   - Bandit ran on Python files (medium and high severity): 0 issue(s).
 Risks:
   - None detected
@@ -127,7 +127,7 @@ Symbols and sections:
 
 | Command | What it does | Formats |
 | --- | --- | --- |
-| `wintersolve brain .` | Full project intelligence report (everything below, composed). | text, markdown, json |
+| `wintersolve brain .` | Repository scan, docs health, architecture, inferred commands, and security leads. | text, markdown, json |
 | `wintersolve scan .` | Quick health check from file names and marker files only. | text, markdown, json |
 | `wintersolve explain FILE` | What one file is, what it defines, what it imports. Python, JS/TS, Go, Rust, Java, and [more](docs/COMMANDS.md#explain--one-file-explained). | text |
 | `wintersolve debug --text "..."` | Likely causes and specific next steps for an error or stack trace. Also reads stdin. | text |
@@ -145,6 +145,7 @@ wintersolve brain . --format markdown --output REPO_BRAIN.md     # onboarding do
 wintersolve brain . --format json | jq '.security.findings'       # feed a script
 pytest 2>&1 | wintersolve debug                                   # explain a failure
 wintersolve brain ~/code/some-repo --no-bandit                    # fastest possible
+wintersolve brain . --progress --format json > report.json        # stages on stderr
 ```
 
 ## Why WinterSolve
@@ -209,8 +210,9 @@ reports; the CLI never calls it.
 
 WinterSolve reads the directory you point it at (skipping `.git`, caches,
 virtual environments, and dependency folders), runs `git status` for `review`,
-and optionally runs Bandit. That is the complete list. Anything that looks like
-a credential is redacted before it reaches a report, and `explain` refuses
+and optionally runs Bandit. That is the complete list. Recognized credential
+patterns are redacted from security finding evidence; review reports before
+sharing because heuristic detection cannot catch every secret. `explain` refuses
 files outside the project root. Details: [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md).
 Found a problem in WinterSolve itself? Please follow [SECURITY.md](SECURITY.md).
 
