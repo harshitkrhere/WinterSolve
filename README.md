@@ -79,7 +79,7 @@ Architecture map:
 Security and privacy:
   - Status: clear
   - Files checked: 86
-  - Secret-like values are redacted before they appear in any report.
+  - Recognized secrets are redacted from security finding evidence.
   - Bandit ran on Python files (medium and high severity): 0 issue(s).
 Risks:
   - None detected
@@ -210,8 +210,9 @@ reports; the CLI never calls it.
 
 WinterSolve reads the directory you point it at (skipping `.git`, caches,
 virtual environments, and dependency folders), runs `git status` for `review`,
-and optionally runs Bandit. That is the complete list. Anything that looks like
-a credential is redacted before it reaches a report, and `explain` refuses
+and optionally runs Bandit. That is the complete list. Recognized credential
+patterns are redacted from security finding evidence; review reports before
+sharing because heuristic detection cannot catch every secret. `explain` refuses
 files outside the project root. Details: [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md).
 Found a problem in WinterSolve itself? Please follow [SECURITY.md](SECURITY.md).
 

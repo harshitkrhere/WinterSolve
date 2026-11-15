@@ -23,9 +23,10 @@ behaviour has to be predictable.
 ## Redaction
 
 Every evidence line in a security finding passes through `redact_secrets`
-before it is stored, so reports are safe to paste into issues. Well-known
-token formats become `<redacted-secret>`; `name = value` assignments become
-`name=<redacted>`.
+before it is stored. Recognized token formats become `<redacted-secret>`;
+recognized `name = value` assignments become `name=<redacted>`. These are
+heuristics, so review a report before sharing it: unknown credential formats
+or values outside finding evidence may remain visible.
 
 ## How the security scan works
 

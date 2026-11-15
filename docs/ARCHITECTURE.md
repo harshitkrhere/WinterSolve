@@ -54,8 +54,9 @@ src/wintersolve/
 4. **Stable outputs.** Text output is plain (no colour codes, no terminal markup)
    so it pastes into issues. JSON carries a `schema_version`; fields are added,
    not renamed.
-5. **Safe on private code.** Secret-like values are redacted before they reach
-   any report, and `explain` refuses paths outside the project root.
+5. **Private-code safeguards.** Recognized secrets in security finding evidence
+   are redacted, and `explain` refuses paths outside the project root. Reports
+   still need review before sharing.
 6. **Boring types.** Frozen dataclasses everywhere. No framework, no plugin
    loader, no async, until a real need appears.
 
