@@ -11,6 +11,21 @@ from .conftest import write
 
 
 class TestPythonFiles:
+    def test_disappearing_file_during_read_is_reported(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        target = write(tmp_path / "app.py", "x = 1\n")
+
+        def disappear(*_args: object, **_kwargs: object) -> str:
+            raise FileNotFoundError("vanished")
+
+        monkeypatch.setattr("wintersolve.modules.explainer.read_text_file", disappear)
+
+        result = explain_file(target)
+
+        assert not result.exists
+        assert result.risks == ["File disappeared, changed, or could not be read safely."]
+
     def test_detects_symbols_imports_and_docstring(self, tmp_path: Path) -> None:
         target = write(
             tmp_path / "demo.py",

@@ -43,9 +43,11 @@ src/wintersolve/
 
 1. **Offline by default.** Nothing in the core makes a network call. The optional
    provider examples are the only code that can, and only when explicitly used.
-2. **One walk.** `project.walk_project` visits the tree once, pruning ignored
-   directories (`node_modules`, `.venv`, build output) before descending. Every
-   analyzer builds on that walk instead of re-scanning.
+2. **One walk in `brain`.** `project.walk_project` builds a shared file inventory,
+   pruning dependency and generated directories before descending. The scan,
+   security, and architecture analyzers reuse that inventory in `brain` and
+   create their own when called independently. Small root manifest and README
+   reads are separate from discovery.
 3. **Leads, not verdicts.** Security and debug output is heuristic and says so.
    Wording stays humble; severity is honest (`high` only for unambiguous token
    formats, `low` for findings in test code).

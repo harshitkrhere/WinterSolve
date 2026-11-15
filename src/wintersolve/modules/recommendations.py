@@ -53,6 +53,9 @@ def build_brain_risks(scan: ScanResult, security: SecuritySummary, command_count
     risks = list(scan.risks)
     counts = _count_by_category(_worth_acting_on(security.findings))
 
+    if security.skipped_reasons:
+        risks.append("Security analysis was incomplete; review skipped files and checks.")
+
     if counts[CATEGORY_SECRET]:
         risks.append(f"{counts[CATEGORY_SECRET]} possible hardcoded secret(s) found.")
     if counts[CATEGORY_CODE_PATTERN]:
@@ -93,6 +96,10 @@ def build_brain_recommendations(
         recommendations.append(
             "Review the Bandit findings and fix or explicitly suppress each one."
         )
+    if security.skipped_reasons:
+        recommendations.append(
+            "Review the security coverage notes and inspect skipped files manually."
+        )
 
     if command_count == 0:
         recommendations.append("Document setup, run, build, and test commands in README.md.")
@@ -115,6 +122,8 @@ def build_next_actions(
         actions.append(f"Review the {high_severity} high-severity security finding(s) first.")
     elif findings:
         actions.append("Review the security findings before sharing this repository or report.")
+    if security.skipped_reasons:
+        actions.append("Inspect files and checks skipped during security analysis.")
 
     if command_count == 0:
         actions.append("Add documented setup and test commands so contributors can be productive.")

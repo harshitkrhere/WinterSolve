@@ -127,7 +127,7 @@ Symbols and sections:
 
 | Command | What it does | Formats |
 | --- | --- | --- |
-| `wintersolve brain .` | Full project intelligence report (everything below, composed). | text, markdown, json |
+| `wintersolve brain .` | Repository scan, docs health, architecture, inferred commands, and security leads. | text, markdown, json |
 | `wintersolve scan .` | Quick health check from file names and marker files only. | text, markdown, json |
 | `wintersolve explain FILE` | What one file is, what it defines, what it imports. Python, JS/TS, Go, Rust, Java, and [more](docs/COMMANDS.md#explain--one-file-explained). | text |
 | `wintersolve debug --text "..."` | Likely causes and specific next steps for an error or stack trace. Also reads stdin. | text |
@@ -145,6 +145,7 @@ wintersolve brain . --format markdown --output REPO_BRAIN.md     # onboarding do
 wintersolve brain . --format json | jq '.security.findings'       # feed a script
 pytest 2>&1 | wintersolve debug                                   # explain a failure
 wintersolve brain ~/code/some-repo --no-bandit                    # fastest possible
+wintersolve brain . --progress --format json > report.json        # stages on stderr
 ```
 
 ## Why WinterSolve

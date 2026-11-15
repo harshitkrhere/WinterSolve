@@ -7,7 +7,7 @@ JSON without surprises. Analyzers build these; they never print.
 from __future__ import annotations
 
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 # Bump when the shape of the JSON report changes in a way integrations must
@@ -66,6 +66,8 @@ class SecuritySummary:
     files_checked: int
     findings: list[SecurityFinding]
     notes: list[str]
+    skipped_files: int = 0
+    skipped_reasons: dict[str, int] = field(default_factory=dict)
 
     @staticmethod
     def empty() -> SecuritySummary:
@@ -75,6 +77,7 @@ class SecuritySummary:
             files_checked=0,
             findings=[],
             notes=["Project path does not exist."],
+            skipped_reasons={},
         )
 
 

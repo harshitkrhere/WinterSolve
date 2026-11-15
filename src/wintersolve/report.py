@@ -244,6 +244,7 @@ def _format_security(security: SecuritySummary) -> list[str]:
         f"Status: {security.status}",
         f"Offline by default: {_yes_no(security.offline_by_default)}",
         f"Files checked: {security.files_checked}",
+        f"Skipped files: {security.skipped_files}",
         *security.notes,
     ]
     items.extend(

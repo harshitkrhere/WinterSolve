@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import time
 from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
@@ -59,6 +60,25 @@ console = Console()
 error_console = Console(stderr=True)
 
 T = TypeVar("T")
+PROGRESS_INTERVAL_SECONDS = 2
+
+
+class _ProgressReporter:
+    """Plain stage and file-count updates; never writes to report stdout."""
+
+    def __init__(self) -> None:
+        self.started = time.monotonic()
+        self.last_stage = ""
+        self.last_update = 0.0
+
+    def update(self, stage: str, files: int | None) -> None:
+        elapsed = time.monotonic() - self.started
+        if stage == self.last_stage and elapsed - self.last_update < PROGRESS_INTERVAL_SECONDS:
+            return
+        detail = f" ({files:,} files)" if files is not None else ""
+        sys.stderr.write(f"[{elapsed:.1f}s] {stage}{detail}\n")
+        self.last_stage = stage
+        self.last_update = elapsed
 
 
 class ReportFormat(str, Enum):
@@ -137,7 +157,7 @@ def scan(
 
 
 @app.command()
-def brain(
+def brain(  # noqa: PLR0917 - Typer exposes each option as a parameter
     path: ProjectArgument = Path(),
     output_format: Annotated[
         ReportFormat,
@@ -151,9 +171,30 @@ def brain(
         bool,
         typer.Option("--no-bandit", help="Skip the optional Bandit pass (faster on large repos)."),
     ] = False,
+    progress: Annotated[
+        bool | None,
+        typer.Option(
+            "--progress/--no-progress",
+            help="Show analysis stages on stderr (automatic on terminals).",
+        ),
+    ] = None,
+    read_workers: Annotated[
+        int,
+        typer.Option("--read-workers", min=1, max=32, help="Concurrent security file reads."),
+    ] = 8,
 ) -> None:
     """Full project intelligence report: architecture, commands, security, risks, next steps."""
-    result = _run(lambda: build_brain_report(path, run_bandit=not no_bandit))
+    reporter = (
+        _ProgressReporter() if (sys.stderr.isatty() if progress is None else progress) else None
+    )
+    result = _run(
+        lambda: build_brain_report(
+            path,
+            run_bandit=not no_bandit,
+            progress=reporter.update if reporter else None,
+            read_workers=read_workers,
+        )
+    )
     _emit(
         render_brain_report(result, output_format=output_format.value), output_format.value, output
     )
@@ -287,6 +328,9 @@ def _run(operation: Callable[[], T]) -> T:
         return operation()
     except typer.Exit:
         raise
+    except KeyboardInterrupt:
+        error_console.print("Interrupted.")
+        raise typer.Exit(code=130) from None
     except Exception as error:  # The CLI boundary reports failures; it never shows tracebacks.
         logger.debug("Command failed", exc_info=error)
         error_console.print(f"[red]Error:[/red] {escape(str(error))}")

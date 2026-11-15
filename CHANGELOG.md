@@ -6,6 +6,43 @@ All notable changes to WinterSolve are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-15
+
+### Added
+
+- Progress stages and elapsed time on stderr for `brain`, with automatic
+  terminal detection and `--progress` / `--no-progress` controls.
+- `--read-workers` to tune bounded concurrent security reads for the storage
+  being scanned. Eight workers are used by default.
+- Structured security coverage data (`skipped_files`, `skipped_reasons`) and a
+  `partial` status when checks could not be completed without a higher-severity
+  finding. These are additive fields in JSON schema version 1.
+- Reproducible repository benchmarks and filesystem regression fixtures.
+
+### Changed
+
+- `brain` shares one repository inventory across scan, security, and
+  architecture analysis. Generated `.next-*` directories are pruned.
+- Bandit receives only discovered Python files, with a total timeout and an
+  isolated working directory outside the project. Its module search no longer
+  inherits a repository `PYTHONPATH`.
+- File reads are bounded and reject linked or changing files; inaccessible
+  files and directories are reported as incomplete coverage.
+- `review` uses NUL-delimited Git status so Unicode, spaces, and unusual
+  filenames are preserved.
+
+### Fixed
+
+- A file disappearing after discovery no longer aborts a repository report.
+- Bandit no longer misses legitimate source folders whose names contain an
+  excluded directory name, such as `vendorized`.
+- `explain` reports files that disappear or change during reading rather than
+  raising an unexplained error.
+- `docs` accepts a substantive README introduction as an overview and reports
+  unreadable READMEs.
+- The workflow registry includes the `workflows` command itself, and Ctrl+C
+  exits cleanly with code 130.
+
 ## [0.4.0] - 2026-09-24
 
 Found by running every command on Express, Cobra, and Flask and fixing what

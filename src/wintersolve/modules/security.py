@@ -20,16 +20,25 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
+import stat
 import subprocess
 import sys
+import tempfile
+import time
+from collections.abc import Callable, Iterator
+from concurrent.futures import ThreadPoolExecutor
+from itertools import islice
 from pathlib import Path
 from typing import Any
 
 from wintersolve.logging_config import get_logger
 from wintersolve.models import SecurityFinding, SecuritySummary
 from wintersolve.project import (
-    IGNORED_DIRECTORIES,
+    MAX_TEXT_FILE_BYTES,
+    ProjectFile,
+    ProjectTree,
     is_code_file,
     is_probably_text,
     is_test_path,
@@ -48,6 +57,16 @@ SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 STATUS_CLEAR = "clear"
 STATUS_LOW_ONLY = "low-severity findings only"
 STATUS_ATTENTION = "attention needed"
+STATUS_PARTIAL = "partial"
+SKIPPED_FILE_REASONS = frozenset(
+    {
+        "inaccessible file metadata",
+        "linked file",
+        "special file",
+        "text file over size limit",
+        "file disappeared or unreadable",
+    }
+)
 
 # Token formats that are unambiguous when they appear verbatim.
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -136,41 +155,93 @@ LINE_COMMENT = re.compile(r"(#|//).*$")
 BANDIT_TIMEOUT_SECONDS = 120
 MAX_REPORTED_FINDINGS = 50
 MAX_EVIDENCE_CHARS = 160
+DEFAULT_READ_WORKERS = 8
+MAX_READ_WORKERS = 32
+READ_BATCH_FILES = 64
+BANDIT_ARGV_MAX_CHARS = 15_000
+BANDIT_BATCH_FILES = 200
 
 
-def analyze_security(root: Path, *, run_bandit: bool = True) -> SecuritySummary:
+def analyze_security(  # noqa: PLR0912, PLR0915 - orchestrates coverage and optional Bandit
+    root: Path,
+    *,
+    run_bandit: bool = True,
+    tree: ProjectTree | None = None,
+    progress: Callable[[str, int | None], None] | None = None,
+    read_workers: int = DEFAULT_READ_WORKERS,
+) -> SecuritySummary:
     """Scan ``root`` for secrets and risky patterns; optionally run Bandit too."""
-    tree = walk_project(root)
+    tree = tree if tree is not None else walk_project(root)
     findings: list[SecurityFinding] = []
     files_checked = 0
-    python_files = 0
+    skipped = dict(tree.skipped)
+    python_files = [file.path for file in tree.files if file.path.suffix == ".py"]
 
-    for project_file in tree.files:
-        if not is_probably_text(project_file.path, project_file.size):
-            continue
-        files_checked += 1
-        if project_file.path.suffix == ".py":
-            python_files += 1
-        text = read_text_file(project_file.path)
-        findings.extend(
-            _scan_text(project_file.relative_path, text, is_code_file(project_file.path))
-        )
+    if progress:
+        progress("Scanning security patterns", 0)
 
-    notes = ["Secret-like values are redacted before they appear in any report."]
+    if read_workers < 1 or read_workers > MAX_READ_WORKERS:
+        raise ValueError("read_workers must be between 1 and 32")
+
+    def candidates() -> Iterator[ProjectFile]:
+        for project_file in tree.files:
+            if not is_probably_text(project_file.path):
+                continue
+            if not is_probably_text(project_file.path, project_file.size):
+                skipped["text file over size limit"] = (
+                    skipped.get("text file over size limit", 0) + 1
+                )
+                continue
+            yield project_file
+
+    pending = candidates()
+    with ThreadPoolExecutor(max_workers=read_workers) as pool:
+        while batch := list(islice(pending, READ_BATCH_FILES)):
+            for project_file, text, error in pool.map(_read_security_candidate, batch):
+                if error is not None:
+                    logger.warning(
+                        "Skipping unreadable file %s: %s", project_file.relative_path, error
+                    )
+                    skipped["file disappeared or unreadable"] = (
+                        skipped.get("file disappeared or unreadable", 0) + 1
+                    )
+                    continue
+                assert text is not None
+                if "\ufffd" in text:
+                    skipped["invalid UTF-8 bytes replaced"] = (
+                        skipped.get("invalid UTF-8 bytes replaced", 0) + 1
+                    )
+                files_checked += 1
+                findings.extend(
+                    _scan_text(project_file.relative_path, text, is_code_file(project_file.path))
+                )
+                if progress and files_checked % 500 == 0:
+                    progress("Scanning security patterns", files_checked)
+
+    notes = [
+        "Secret-like values are redacted before they appear in any report.",
+        "Built-in checks inspect recognised text files up to 250,000 bytes; "
+        "generated and dependency directories are excluded.",
+    ]
     if run_bandit and python_files:
-        bandit_findings, bandit_note = _run_bandit(root)
+        if progress:
+            progress("Running Bandit", len(python_files))
+        bandit_findings, bandit_note, bandit_complete = _run_bandit(root, python_files)
         findings = _without_lines_bandit_also_found(findings, bandit_findings)
         findings.extend(bandit_findings)
         notes.append(bandit_note)
+        if not bandit_complete:
+            skipped["Bandit analysis incomplete"] = 1
     elif run_bandit:
         notes.append("Bandit skipped: no Python files found.")
     else:
         notes.append("Bandit skipped by request (--no-bandit).")
 
+    total_findings = len(findings)
     findings.sort(key=lambda f: (SEVERITY_ORDER.get(f.severity, 3), f.path, f.line))
-    if len(findings) > MAX_REPORTED_FINDINGS:
+    if total_findings > MAX_REPORTED_FINDINGS:
         notes.append(
-            f"Showing the first {MAX_REPORTED_FINDINGS} of {len(findings)} findings, "
+            f"Showing the first {MAX_REPORTED_FINDINGS} of {total_findings} findings, "
             "highest severity first."
         )
         findings = findings[:MAX_REPORTED_FINDINGS]
@@ -181,17 +252,38 @@ def analyze_security(root: Path, *, run_bandit: bool = True) -> SecuritySummary:
         )
     if findings:
         notes.append("Treat findings as leads, not verdicts: confirm each one in context.")
+    if skipped:
+        notes.append(
+            "Incomplete coverage: "
+            + ", ".join(f"{reason} ({count})" for reason, count in sorted(skipped.items()))
+            + "."
+        )
 
     logger.info(
         "Security scan complete: %d files checked, %d findings", files_checked, len(findings)
     )
     return SecuritySummary(
-        status=_status(findings),
+        status=_status(findings)
+        if not skipped or any(f.severity != "low" for f in findings)
+        else STATUS_PARTIAL,
         offline_by_default=True,
         files_checked=files_checked,
         findings=findings,
         notes=notes,
+        skipped_files=sum(
+            count for reason, count in skipped.items() if reason in SKIPPED_FILE_REASONS
+        ),
+        skipped_reasons=skipped,
     )
+
+
+def _read_security_candidate(
+    project_file: ProjectFile,
+) -> tuple[ProjectFile, str | None, OSError | None]:
+    try:
+        return project_file, read_text_file(project_file.path, max_bytes=MAX_TEXT_FILE_BYTES), None
+    except OSError as error:
+        return project_file, None, error
 
 
 def _status(findings: list[SecurityFinding]) -> str:
@@ -299,49 +391,140 @@ def looks_like_real_secret(value: str) -> bool:
     return has_digit and has_alpha
 
 
-def _run_bandit(root: Path) -> tuple[list[SecurityFinding], str]:
+def _bandit_working_parent(root: Path) -> Path | None:
+    """Choose a directory outside the target for Bandit's isolated child."""
+    resolved_root = root.resolve()
+    return next(
+        (
+            candidate
+            for candidate in (Path(tempfile.gettempdir()), Path.home(), Path(sys.base_prefix))
+            if candidate.is_dir() and not candidate.resolve().is_relative_to(resolved_root)
+        ),
+        None,
+    )
+
+
+def _bandit_targets(root: Path, python_files: list[Path]) -> tuple[list[Path], int]:
+    """Recheck discovered paths before handing them to another process."""
+    resolved_root = root.resolve()
+    safe_files: list[Path] = []
+    rejected_files = 0
+    for path in python_files:
+        try:
+            info = path.lstat()
+            safe = (
+                stat.S_ISREG(info.st_mode)
+                and not getattr(info, "st_file_attributes", 0) & 0x400
+                and path.resolve().is_relative_to(resolved_root)
+            )
+        except OSError:
+            safe = False
+        if safe:
+            safe_files.append(path)
+        else:
+            rejected_files += 1
+    return safe_files, rejected_files
+
+
+def _run_bandit(  # noqa: PLR0911, PLR0912 - incomplete outcomes have distinct reasons
+    root: Path, python_files: list[Path]
+) -> tuple[list[SecurityFinding], str, bool]:
     """Run Bandit on the project's Python files, if it is installed.
 
     Only medium and high severity issues are collected; low-severity notes
     (``assert`` in tests, ``import subprocess``) drown out real problems.
     """
     if importlib.util.find_spec("bandit") is None:
-        return [], "Bandit not installed; install with `pip install 'wintersolve[security]'`."
+        return (
+            [],
+            "Bandit not installed; install with `pip install 'wintersolve[security]'`.",
+            False,
+        )
 
-    excludes = ",".join(sorted(IGNORED_DIRECTORIES))
-    # ``-ll`` means "medium severity and above" and works on every Bandit release.
-    command = [
+    # `python -m bandit` searches its working directory. When WinterSolve is
+    # launched from the repository, a repository-owned bandit.py could run.
+    # Keep the child outside the target and discard a project PYTHONPATH.
+    safe_parent = _bandit_working_parent(root)
+    if safe_parent is None:
+        return [], "Bandit could not find a working directory outside the project.", False
+    safe_env = os.environ.copy()
+    safe_env.pop("PYTHONPATH", None)
+
+    safe_files, rejected_files = _bandit_targets(root, python_files)
+    if not safe_files:
+        return [], "Bandit skipped: discovered Python files changed or became unreadable.", False
+
+    # Explicit discovered paths give Bandit precisely the same filesystem scope
+    # as the built-in walk. Bound each argv for Windows' command-line limit.
+    prefix = [
         sys.executable,
         "-m",
         "bandit",
         "-q",
-        "-r",
         "-f",
         "json",
         "-ll",
-        "-x",
-        excludes,
-        str(root),
     ]
-    try:
-        completed = subprocess.run(  # fixed argv, never a shell
-            command,
-            capture_output=True,
-            text=True,
-            timeout=BANDIT_TIMEOUT_SECONDS,
-            check=False,
-        )
-        payload = json.loads(completed.stdout or "{}")
-    except subprocess.TimeoutExpired:
-        return [], f"Bandit timed out after {BANDIT_TIMEOUT_SECONDS}s; run it manually for details."
-    except (OSError, json.JSONDecodeError) as error:
-        logger.debug("Bandit could not be run: %s", error)
-        return [], "Bandit could not be run; run `bandit -r .` manually for details."
+    batches: list[list[str]] = []
+    batch: list[str] = []
+    length = 0
+    for path in safe_files:
+        name = str(path)
+        if batch and (
+            length + len(name) > BANDIT_ARGV_MAX_CHARS or len(batch) >= BANDIT_BATCH_FILES
+        ):
+            batches.append(batch)
+            batch = []
+            length = 0
+        batch.append(name)
+        length += len(name) + 3
+    if batch:
+        batches.append(batch)
 
-    findings = [_bandit_finding(issue, root) for issue in payload.get("results", [])]
-    return findings, (
-        f"Bandit ran on Python files (medium and high severity): {len(findings)} issue(s)."
-    )
+    findings: list[SecurityFinding] = []
+    deadline = time.monotonic() + BANDIT_TIMEOUT_SECONDS
+    try:
+        isolated_cwd = tempfile.TemporaryDirectory(prefix="wintersolve-bandit-", dir=safe_parent)
+    except OSError:
+        return [], "Bandit could not create an isolated working directory.", False
+    with isolated_cwd as safe_cwd:
+        for batch in batches:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                return (
+                    findings,
+                    f"Bandit exceeded its {BANDIT_TIMEOUT_SECONDS}s total limit.",
+                    False,
+                )
+            try:
+                completed = subprocess.run(
+                    [*prefix, *batch],
+                    capture_output=True,
+                    text=True,
+                    timeout=remaining,
+                    check=False,
+                    cwd=safe_cwd,
+                    env=safe_env,
+                )
+                payload = json.loads(completed.stdout)
+                if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+                    return findings, "Bandit returned invalid JSON output.", False
+                findings.extend(_bandit_finding(issue, root) for issue in payload["results"])
+                if completed.returncode not in (0, 1) or payload.get("errors"):
+                    return findings, "Bandit reported errors; its analysis is incomplete.", False
+            except subprocess.TimeoutExpired:
+                return (
+                    findings,
+                    f"Bandit exceeded its {BANDIT_TIMEOUT_SECONDS}s total limit.",
+                    False,
+                )
+            except (OSError, ValueError, TypeError) as error:
+                logger.debug("Bandit could not be run: %s", error)
+                return findings, "Bandit could not be run or returned invalid output.", False
+    note = f"Bandit ran on {len(safe_files)} Python files: {len(findings)} issue(s)."
+    if rejected_files:
+        note += f" {rejected_files} discovered Python file(s) changed or became unreadable."
+    return findings, note, rejected_files == 0
 
 
 def _bandit_finding(issue: dict[str, Any], root: Path) -> SecurityFinding:

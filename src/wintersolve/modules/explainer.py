@@ -22,6 +22,7 @@ from wintersolve.modules.docs_assistant import markdown_headings
 from wintersolve.project import (
     DATA_FORMAT_BY_EXTENSION,
     LANGUAGE_BY_EXTENSION,
+    MAX_TEXT_FILE_BYTES,
     is_probably_text,
     read_text_file,
 )
@@ -81,7 +82,22 @@ def explain_file(path: Path) -> FileExplanation:
             errors=[],
         )
 
-    if not is_probably_text(path, path.stat().st_size):
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return FileExplanation(
+            path=path,
+            exists=False,
+            language=_language_label(path),
+            line_count=0,
+            summary=[],
+            symbols=[],
+            imports=[],
+            risks=["File disappeared or could not be inspected."],
+            errors=[],
+        )
+
+    if not is_probably_text(path, size):
         return FileExplanation(
             path=path,
             exists=True,
@@ -94,7 +110,20 @@ def explain_file(path: Path) -> FileExplanation:
             errors=[],
         )
 
-    content = read_text_file(path)
+    try:
+        content = read_text_file(path, max_bytes=MAX_TEXT_FILE_BYTES)
+    except OSError:
+        return FileExplanation(
+            path=path,
+            exists=False,
+            language=_language_label(path),
+            line_count=0,
+            summary=[],
+            symbols=[],
+            imports=[],
+            risks=["File disappeared, changed, or could not be read safely."],
+            errors=[],
+        )
     line_count = len(content.splitlines())
     language = _language_label(path)
     analyze = ANALYZERS.get(language)

@@ -35,8 +35,8 @@ notes and the built artifacts attached.
 5. Tag and push:
 
    ```bash
-   git tag -a v0.3.0 -m "WinterSolve 0.3.0"
-   git push origin v0.3.0
+   git tag -a vX.Y.Z -m "WinterSolve X.Y.Z"
+   git push origin vX.Y.Z
    ```
 
 6. Watch the `Release` workflow. When it finishes, confirm:

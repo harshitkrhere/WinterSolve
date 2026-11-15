@@ -142,6 +142,22 @@ class TestSummaryShape:
 
 @pytest.mark.skipif(importlib.util.find_spec("bandit") is None, reason="bandit not installed")
 class TestBanditIntegration:
+    def test_repository_bandit_module_is_not_executed(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        marker = tmp_path / "EXECUTED"
+        write(
+            tmp_path / "bandit.py",
+            "from pathlib import Path\nPath('EXECUTED').write_text('ran')\n",
+        )
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("PYTHONPATH", str(tmp_path))
+
+        summary = analyze_security(tmp_path)
+
+        assert not marker.exists()
+        assert any("Bandit ran on 1 Python files" in note for note in summary.notes)
+
     def test_bandit_findings_are_relative_and_categorised(self, tmp_path: Path) -> None:
         write(tmp_path / "src" / "load.py", "import pickle\n\npickle.loads(b'')\n")
         write(tmp_path / ".venv" / "lib" / "vendored.py", "import pickle\n\npickle.loads(b'')\n")
@@ -152,6 +168,32 @@ class TestBanditIntegration:
         assert bandit, summary.notes
         assert all(f.path == "src/load.py" for f in bandit)  # .venv was excluded
         assert any(note.startswith("Bandit ran") for note in summary.notes)
+
+    def test_bandit_skips_next_recovery_directory(self, tmp_path: Path) -> None:
+        write(tmp_path / "app.py", "x = 1\n")
+        write(
+            tmp_path / ".next-recovery-e2e" / "generated.py",
+            "import pickle\npickle.loads(b'')\n",
+        )
+
+        summary = analyze_security(tmp_path)
+
+        assert summary.findings == []
+        assert summary.files_checked == 1
+        assert any("Bandit ran on 1 Python files" in note for note in summary.notes)
+
+    def test_bandit_scans_source_folder_containing_excluded_name(self, tmp_path: Path) -> None:
+        write(
+            tmp_path / "vendorized" / "app.py",
+            "import subprocess\nsubprocess.run(cmd, shell=True)\n",
+        )
+
+        summary = analyze_security(tmp_path)
+
+        assert any(
+            f.category == CATEGORY_BANDIT and f.path == "vendorized/app.py"
+            for f in summary.findings
+        )
 
 
 class TestHelpers:

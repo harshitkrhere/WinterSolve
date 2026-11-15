@@ -22,4 +22,5 @@ def get_workflows() -> list[Workflow]:
         Workflow("debug", "Error, log, and stack trace analysis", True, ["text"]),
         Workflow("docs", "README and hygiene-file suggestions", True, ["text"]),
         Workflow("review", "Pre-review checklist for local changes", True, ["text"]),
+        Workflow("workflows", "List available commands and formats", True, ["text"]),
     ]
